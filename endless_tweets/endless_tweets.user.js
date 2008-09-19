@@ -34,8 +34,14 @@ if (timeline) {
       loading = false,
       preloadingHandler = null
       
-  var someTweetLink = find(timelineBody, '> tr[1] > td.content a')
-  var pageDelimiterColor = someTweetLink ? getStyle(someTweetLink, 'color') : '#aaa'
+  var someTweetLink = find(timelineBody, '> tr[1] div.status-body a')
+  if (someTweetLink) {
+    var pageDelimiterColor = getStyle(someTweetLink, 'color')
+    var pageDelimiterStyle = '1px dotted ' + pageDelimiterColor
+  } else {
+    var pageDelimiterColor = '#aaa'
+    var pageDelimiterStyle = '1px solid ' + pageDelimiterColor
+  }
   
   if (quotably) {
     quotablyIcon = "data:image/gif,GIF89a%0F%00%0D%00%A57%002u%D93v%D98v%D96z%DF%3Cy%DA7%7B%DF7%7C%E1%3D%81%DFU%7B%DA%3C%82%DFr%80%DAZ%9A%EE%8E%93%DC%89%99%DE%82%9C%E1%A4%A4%A4%A5%A5%A5%A8%A8%A8%BB%9E%DE%AB%AB%AB%B0%B0%B0%B1%B1%B1%B3%B3%B3%B4%B4%B4%B7%B7%B7%B9%B9%B9p%D0%FAq%D2%FA%91%CD%F9%BF%C2%E9%AC%C7%F0%C5%C5%C5%A3%D5%F8%9D%D7%FB%DE%C6%E4%CE%CE%CE%D1%D1%D1%D9%D9%D9%E8%E8%E8%C7%F1%FD%E9%E9%E9%EB%EB%EB%ED%ED%ED%F2%F2%F2%DB%F9%FE%DB%FA%FE%F7%F7%F7%F8%F8%F8%FB%F9%F9%FB%FB%FB%FC%FC%FC%FD%FC%FB%FD%FD%FD%FE%FE%FE%FF%FE%FE%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%2C%00%00%00%00%0F%00%0D%00%00%06Z%C0%92pH%2C%96n%C8%A42)L%D6F%24'%F4%D6%BC%B9%2C%95%14%F2%9A%A5%1Ei%95%CA%0B%09%16%23%9B%9F%87)%99F1%8F%93G%2C%19%97%BDo%90%C7%83%E2%CE%EF%DDM%11z%0F%157%82z%85M%18%83%177%8Bz%8DM%2B%19%10%15*7%93%95%97UK%9DF%9FCA%00%3B"
@@ -114,21 +120,24 @@ if (timeline) {
           url: nextPageLink.href,
           onload: function(r) {
             var row, rows = [],
-                match = r.responseText.match(/<table[^>]*>([\s\S]+?)<\/table>/),
+                match = r.responseText.match(/<table[^>]*id="timeline"[^>]*>([\s\S]+?)<\/table>/),
                 hasNextPage = /<a [^>]*rel="prev"/.test(r.responseText),
                 table = $E('table')
-                
-            table.innerHTML = '<tbody>' + match[1] + '</tbody>'
-            match = null
-            var newPage = table.firstChild
-            forEach(newPage.rows, function(row) { rows.push(row) })
-            // don't show tweets already present in the document
-            rows.forEach(function(row) { if ($(row.id)) newPage.removeChild(row) })
             
-            timeline.appendChild(newPage)
-            forEach(newPage.rows, processTweet)
+            table.innerHTML = match[1]
+            log("found %s rows", table.rows.length)
+            match = null
+            var newTimelineBody = table.tBodies[0]
+            newTimelineBody.id = ""
+            forEach(newTimelineBody.rows, function(row) { rows.push(row) })
+            // don't show tweets already present in the document
+            rows.forEach(function(row) { if ($(row.id)) newTimelineBody.removeChild(row) })
+            log("%s rows to insert", newTimelineBody.rows.length)
+            
+            timeline.appendChild(newTimelineBody)
+            forEach(newTimelineBody.rows, processTweet)
             log("page %s processed", pageNumber)
-            newPage = table = null
+            newTimelineBody = table = null
 
             if (hasNextPage) {
               // bump the page number on next page link
@@ -151,8 +160,10 @@ if (timeline) {
     #timeline { border-collapse: collapse }\
     #timeline td.content span.meta { white-space: nowrap }\
     #timeline td[align='right'] { padding-top:2px; padding-bottom:2px; }\
-    #timeline tbody { border-top: 2px dotted " + pageDelimiterColor + " }\
+    #timeline tbody { border-top: " + pageDelimiterStyle + " }\
     #timeline tbody:first-child { border-top: none }\
+    #timeline tbody > tr:last-child td { border-bottom: none }\
+    #timeline { border-bottom: 1px dashed #D2DADA }\
     #timeline tr.last-read { background: #ffffe8 }\
     #timeline tr.aready-read { color: #666 }\
     #timeline tr.aready-read a { color: #555 !important; text-decoration: underline }\
@@ -209,7 +220,7 @@ var wrapper = find(null, '#content > div.wrapper')
 if (wrapper) {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
       sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      scriptLength = 13324,
+      scriptLength = 13802,
       updateAvailable = GM_getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
