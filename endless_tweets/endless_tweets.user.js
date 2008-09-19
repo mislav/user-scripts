@@ -9,8 +9,7 @@
 
 var timeline  = $('timeline'),
     home      = window.location.pathname == '/home',
-    debugMode = GM_getValue('debugMode', false),
-    quotably  = GM_getValue('quotablyIntegration', false)
+    debugMode = GM_getValue('debugMode', false)
     
 if (home) {
   var lastReadTweet = GM_getValue('lastReadTweet', 0)
@@ -20,11 +19,6 @@ if (home) {
 GM_registerMenuCommand('Endless Tweets debug mode', function() {
   GM_setValue('debugMode', (debugMode = !debugMode))
   alert('debug mode ' + (debugMode ? 'ON' : 'OFF'))
-})
-
-GM_registerMenuCommand('Turn ' + (quotably ? 'off' : 'on') + ' Twitter Quotably.com integration', function() {
-  GM_setValue('quotablyIntegration', (quotably = !quotably))
-  alert('Quotably integration ' + (quotably ? 'ON' : 'OFF'))
 })
 
 if (timeline) {
@@ -43,28 +37,6 @@ if (timeline) {
     var pageDelimiterStyle = '1px solid ' + pageDelimiterColor
   }
   
-  if (quotably) {
-    quotablyIcon = "data:image/gif,GIF89a%0F%00%0D%00%A57%002u%D93v%D98v%D96z%DF%3Cy%DA7%7B%DF7%7C%E1%3D%81%DFU%7B%DA%3C%82%DFr%80%DAZ%9A%EE%8E%93%DC%89%99%DE%82%9C%E1%A4%A4%A4%A5%A5%A5%A8%A8%A8%BB%9E%DE%AB%AB%AB%B0%B0%B0%B1%B1%B1%B3%B3%B3%B4%B4%B4%B7%B7%B7%B9%B9%B9p%D0%FAq%D2%FA%91%CD%F9%BF%C2%E9%AC%C7%F0%C5%C5%C5%A3%D5%F8%9D%D7%FB%DE%C6%E4%CE%CE%CE%D1%D1%D1%D9%D9%D9%E8%E8%E8%C7%F1%FD%E9%E9%E9%EB%EB%EB%ED%ED%ED%F2%F2%F2%DB%F9%FE%DB%FA%FE%F7%F7%F7%F8%F8%F8%FB%F9%F9%FB%FB%FB%FC%FC%FC%FD%FC%FB%FD%FD%FD%FE%FE%FE%FF%FE%FE%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%FF%2C%00%00%00%00%0F%00%0D%00%00%06Z%C0%92pH%2C%96n%C8%A42)L%D6F%24'%F4%D6%BC%B9%2C%95%14%F2%9A%A5%1Ei%95%CA%0B%09%16%23%9B%9F%87)%99F1%8F%93G%2C%19%97%BDo%90%C7%83%E2%CE%EF%DDM%11z%0F%157%82z%85M%18%83%177%8Bz%8DM%2B%19%10%15*7%93%95%97UK%9DF%9FCA%00%3B"
-    
-    function addQuotably(el) {
-      var status_id = el.id.split('_')[1],
-          meta = find(el, 'span.meta'),
-          statusLink = selectString('a[1]/@href', meta),
-          actions = $('status_actions_' + status_id),
-          quot = document.createElement('a')
-      // Quotably mimics Twitter's paths
-      quot.href = statusLink.replace(/twitter/, 'quotably')
-      quot.className = 'quotably'
-      quot.title = 'Follow the conversation'
-      var img = document.createElement('img')
-      img.alt = 'quotably'
-      img.src = quotablyIcon
-      quot.appendChild(img)
-      // append it after the 'favorite' and 'reply' icons
-      actions.appendChild(quot)
-    }
-  }
-
   function stopPreloading(text) {
     enablePreloading = false
     window.removeEventListener('scroll', preloadingHandler, false)
@@ -73,11 +45,6 @@ if (timeline) {
   }
 
   function processTweet(row) {
-    if (quotably) {
-      try { addQuotably(row) }
-      catch (e) { log('addQuotably() failed (%s)', e) }
-    }
-    
     var id = Number(row.id.split('_')[1])
     
     if (home) {
@@ -147,7 +114,6 @@ if (timeline) {
   }
   
   addCSS("\
-    .status_actions .quotably img { margin-top: 0 }\
     #timeline { border-collapse: collapse }\
     #timeline td.content span.meta { white-space: nowrap }\
     #timeline td[align='right'] { padding-top:2px; padding-bottom:2px; }\
