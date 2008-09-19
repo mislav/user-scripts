@@ -183,7 +183,7 @@ var wrapper = find(null, '#content > div.wrapper')
 if (wrapper) {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
       sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      scriptLength = 13802,
+      scriptLength = 11996,
       updateAvailable = GM_getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
