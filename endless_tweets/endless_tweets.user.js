@@ -12,41 +12,43 @@ if (GM_getValue) {
   var setValue = GM_setValue
 } else {
   var Cookie = {
-    PREFIX: '_greasekit',
+    PREFIX: '_greasekit_',
+    prefixedName: function(name){
+      return Cookie.PREFIX + name;
+    },
     
     get: function(name) {
-      var nameEQ = escape(Cookie._buildName(name)) + "=", ca = document.cookie.split(';');
-      for (var i = 0, c; i < ca.length; i++) {
-        c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+      var name = escape(Cookie.prefixedName(name)) + '='
+      if (document.cookie.indexOf(name) >= 0) {
+        var cookies = document.cookie.split(/\s*;\s*/)
+        for (var i = 0; i < cookies.length; i++) {
+          if (cookies[i].indexOf(name) == 0)
+            return unescape(cookies[i].substring(name.length, cookies[i].length))
+        }
       }
-      return null;
+      return null
     },
     set: function(name, value, options) {
-      options = (options || {});
-      if (options.expiresInOneYear){
-        var today = new Date();
-        today.setFullYear(today.getFullYear() + 1, today.getMonth, today.getDay());
-        options.expires = today;
+      newcookie = [escape(Cookie.prefixedName(name)) + "=" + escape(value)]
+      if (options) {
+        if (options.expires) newcookie.push("expires=" + options.expires.toGMTString())
+        if (options.path)    newcookie.push("path=" + options.path)
+        if (options.domain)  newcookie.push("domain=" + options.domain)
+        if (options.secure)  newcookie.push("secure")
       }
-      var curCookie = escape(Cookie._buildName(name)) + "=" + escape(value) +
-        (options.expires ? "; expires=" + options.expires.toGMTString() : "") +
-        (options.path    ? "; path="    + options.path : "") +
-        (options.domain  ? "; domain="  + options.domain : "") +
-        (options.secure  ? "; secure" : "");
-      document.cookie = curCookie;
-    },
-    hasCookie: function( name ){
-      return document.cookie.indexOf(escape(Cookie._buildName(name))) >= 0;
-    },
-    _buildName: function(name){
-      return Cookie.PREFIX + '_' + name;
+      document.cookie = newcookie.join('; ')
     }
   }
 
-  var getValue = Cookie.get
-  var setValue = Cookie.set
+  var getValue = function(name, default) {
+    return Cookie.get(name) || default
+  }
+  var setValue = function(name, value) {
+    var expiration = new Date()
+    expiration.setFullYear(expiration.getFullYear() + 1)
+    
+    Cookie.set(name, value, { expires: expiration })
+  }
 }
 
 var timeline  = $('timeline'),
