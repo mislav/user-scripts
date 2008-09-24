@@ -40,8 +40,8 @@ if (GM_getValue) {
     }
   }
 
-  var getValue = function(name, default) {
-    return Cookie.get(name) || default
+  var getValue = function(name, defaultValue) {
+    return (Cookie.get(name) || defaultValue)
   }
   var setValue = function(name, value) {
     var expiration = new Date()
@@ -367,21 +367,19 @@ function getStyle(element, style) {
   return value == 'auto' ? null : value
 }
 
-var addCSS = function() {
-  if (GM_addStyle) return GM_addStyle
-  else {
-    var styleElement = null
+var styleElement = null
 
-    return function(css) {
-      if (!styleElement) {
-        var head = document.getElementsByTagName('head')[0]
-        var styleElement = $E('style', { type: 'text/css' })
-        head.appendChild(styleElement)
-      }
-      styleElement.appendChild(document.createTextNode(css))
-    }  
+function addCSS(css) {
+  if (GM_addStyle) GM_addStyle(css)
+  else {
+    if (!styleElement) {
+      var head = document.getElementsByTagName('head')[0]
+      var styleElement = $E('style', { type: 'text/css' })
+      head.appendChild(styleElement)
+    }
+    styleElement.appendChild(document.createTextNode(css))
   }
-}()
+}
 
 function log(message) {
   if (debugMode) {
