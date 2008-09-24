@@ -7,19 +7,63 @@
 // @exclude        http://twitter.com/help/*
 // ==/UserScript==
 
+if (GM_getValue) {
+  var getValue = GM_getValue
+  var setValue = GM_setValue
+} else {
+  var Cookie = {
+    PREFIX: '_greasekit',
+    
+    get: function(name) {
+      var nameEQ = escape(Cookie._buildName(name)) + "=", ca = document.cookie.split(';');
+      for (var i = 0, c; i < ca.length; i++) {
+        c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+      }
+      return null;
+    },
+    set: function(name, value, options) {
+      options = (options || {});
+      if (options.expiresInOneYear){
+        var today = new Date();
+        today.setFullYear(today.getFullYear() + 1, today.getMonth, today.getDay());
+        options.expires = today;
+      }
+      var curCookie = escape(Cookie._buildName(name)) + "=" + escape(value) +
+        (options.expires ? "; expires=" + options.expires.toGMTString() : "") +
+        (options.path    ? "; path="    + options.path : "") +
+        (options.domain  ? "; domain="  + options.domain : "") +
+        (options.secure  ? "; secure" : "");
+      document.cookie = curCookie;
+    },
+    hasCookie: function( name ){
+      return document.cookie.indexOf(escape(Cookie._buildName(name))) >= 0;
+    },
+    _buildName: function(name){
+      return Cookie.PREFIX + '_' + name;
+    }
+  }
+
+  var getValue = Cookie.get
+  var setValue = Cookie.set
+}
+
 var timeline  = $('timeline'),
     home      = window.location.pathname == '/home',
-    debugMode = GM_getValue('debugMode', false)
+    debugMode = getValue('debugMode', false)
     
 if (home) {
-  var lastReadTweet = GM_getValue('lastReadTweet', 0)
+  var lastReadTweet = getValue('lastReadTweet', 0)
   var oldLastRead   = lastReadTweet
 }
 
-GM_registerMenuCommand('Endless Tweets debug mode', function() {
-  GM_setValue('debugMode', (debugMode = !debugMode))
-  alert('debug mode ' + (debugMode ? 'ON' : 'OFF'))
-})
+if (GM_registerMenuCommand) {
+  GM_registerMenuCommand('Endless Tweets debug mode', function() {
+    setValue('debugMode', (debugMode = !debugMode))
+    alert('debug mode ' + (debugMode ? 'ON' : 'OFF'))
+  })
+}
 
 if (timeline) {
   var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
@@ -50,7 +94,7 @@ if (timeline) {
     if (home) {
       if (id > lastReadTweet) {
         // a tweet newer than the last read? mark it as new last read
-        GM_setValue('lastReadTweet', (lastReadTweet = id))
+        setValue('lastReadTweet', (lastReadTweet = id))
       } else if (id == oldLastRead) {
         stopPreloading("You have reached the last read tweet.")
         row.className += ' last-read'
@@ -73,7 +117,7 @@ if (timeline) {
         log('nearing the end of page; loading page %s', pageNumber)
         
         // get the next page!
-        GM_xmlhttpRequest({
+        xhr({
           method: 'GET',
           url: nextPageLink.href,
           onload: function(r) {
@@ -180,23 +224,23 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 
 var wrapper = find(null, '#content > div.wrapper')
 
-if (wrapper) {
+if (wrapper && GM_xmlhttpRequest) {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
       sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
       scriptLength = 11996,
-      updateAvailable = GM_getValue('updateAvailable', false)
+      updateAvailable = getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
     if (updateAvailable = scriptLength != length)
-      GM_setValue('updateAvailable', length)
+      setValue('updateAvailable', length)
     else
-      GM_setValue('updateAvailable', updateAvailable)
+      setValue('updateAvailable', updateAvailable)
   }
 
   if (typeof updateAvailable == 'number') validateScriptLength(updateAvailable)
 
   if (!updateAvailable) {
-    var lastUpdate = GM_getValue('updateTimestamp'),
+    var lastUpdate = getValue('updateTimestamp'),
         time = Math.floor(new Date().getTime() / 1000),
         performCheck = time > lastUpdate + 172800 // 2 days
         
@@ -214,7 +258,7 @@ if (wrapper) {
     }
     
     if (!lastUpdate || performCheck)
-      GM_setValue('updateTimestamp', time)
+      setValue('updateTimestamp', time)
   }
 
   if (updateAvailable) {
@@ -261,7 +305,7 @@ function xpath2array(result) {
 }
 
 function select(xpath, parent, type) {
-  if (!/^\.?\//.test(xpath)) xpath = css2xpath(xpath)
+  if (!/^\.?\/./.test(xpath)) xpath = css2xpath(xpath)
   return document.evaluate(xpath, parent || document, null, type || XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
 }
 function selectString(xpath, parent) {
@@ -321,23 +365,49 @@ function getStyle(element, style) {
   return value == 'auto' ? null : value
 }
 
-var styleElement = null
+var addCSS = function() {
+  if (GM_addStyle) return GM_addStyle
+  else {
+    var styleElement = null
 
-function addCSS(css) {
-  if (!styleElement) {
-    var head = document.getElementsByTagName('head')[0]
-    if (!head) return
-    var styleElement = $E('style', { type: 'text/css' })
-    head.appendChild(styleElement)
+    return function(css) {
+      if (!styleElement) {
+        var head = document.getElementsByTagName('head')[0]
+        var styleElement = $E('style', { type: 'text/css' })
+        head.appendChild(styleElement)
+      }
+      styleElement.appendChild(document.createTextNode(css))
+    }  
   }
-  styleElement.innerHTML += css
-}
+}()
 
 function log(message) {
   if (debugMode) {
     for (var i = 1; i < arguments.length; i++)
       message = message.replace('%s', arguments[i])
       
-    GM_log(message)
+    if (GM_log) GM_log(message)
+    else if (window.console) console.log(message)
+  }
+}
+
+if (GM_xmlhttpRequest) {
+  var xhr = GM_xmlhttpRequest
+} else {
+  var xhr = function(params) {
+    var req = new XMLHttpRequest()
+    
+    req.onreadystatechange = function() {
+      if (req.readyState == 4) {
+        if (req.status >= 200 && req.status < 400) if (params.onload) params.onload(req)
+        else if (params.onerror) params.onerror(req)
+      }
+    }
+    
+    if (params.headers) for (name in params.headers)
+      req.setRequestHeader(name, params.headers[name])
+    
+    req.open(params.method, params.url, true)
+    req.send(params.data)
   }
 }
