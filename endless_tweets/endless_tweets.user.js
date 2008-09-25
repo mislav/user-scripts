@@ -7,7 +7,7 @@
 // @exclude        http://twitter.com/help/*
 // ==/UserScript==
 
-if (GM_getValue) {
+if (typeof GM_getValue == "function") {
   var getValue = GM_getValue
   var setValue = GM_setValue
 } else {
@@ -60,7 +60,7 @@ if (home) {
   var oldLastRead   = lastReadTweet
 }
 
-if (GM_registerMenuCommand) {
+if (typeof GM_registerMenuCommand == "function") {
   GM_registerMenuCommand('Endless Tweets debug mode', function() {
     setValue('debugMode', (debugMode = !debugMode))
     alert('debug mode ' + (debugMode ? 'ON' : 'OFF'))
@@ -226,7 +226,7 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 
 var wrapper = find(null, '#content > div.wrapper')
 
-if (wrapper && GM_xmlhttpRequest) {
+if (wrapper && typeof GM_xmlhttpRequest == "function") {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
       sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
       scriptLength = 11996,
@@ -370,7 +370,7 @@ function getStyle(element, style) {
 var styleElement = null
 
 function addCSS(css) {
-  if (GM_addStyle) GM_addStyle(css)
+  if (typeof GM_addStyle == "function") GM_addStyle(css)
   else {
     if (!styleElement) {
       var head = document.getElementsByTagName('head')[0]
@@ -386,12 +386,12 @@ function log(message) {
     for (var i = 1; i < arguments.length; i++)
       message = message.replace('%s', arguments[i])
       
-    if (GM_log) GM_log(message)
+    if (typeof GM_log == "function") GM_log(message)
     else if (window.console) console.log(message)
   }
 }
 
-if (GM_xmlhttpRequest) {
+if (typeof GM_xmlhttpRequest == "function") {
   var xhr = GM_xmlhttpRequest
 } else {
   var xhr = function(params) {
