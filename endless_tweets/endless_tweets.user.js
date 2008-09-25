@@ -41,7 +41,13 @@ if (typeof GM_getValue == "function") {
   }
 
   var getValue = function(name, defaultValue) {
-    return (Cookie.get(name) || defaultValue)
+    var value = Cookie.get(name)
+    if (value) {
+      if (value == 'true')  return true
+      if (value == 'false') return false
+      return value
+    }
+    else return defaultValue
   }
   var setValue = function(name, value) {
     var expiration = new Date()
@@ -72,10 +78,11 @@ if (timeline) {
       timelineBody = timeline.tBodies[0],
       enablePreloading = true,
       loading = false,
-      preloadingHandler = null,
-      polling = home
+      preloadingHandler = null
   
-  if (polling) {
+  if (home) {
+    var polling = getValue('polling', false)
+    
     function deliverUpdate(data) {
       var update = timelineBody.rows[0].cloneNode(true)
       update.id = "status_" + data.id
@@ -126,7 +133,34 @@ if (timeline) {
       })
     }
     
-    setInterval(checkUpdates, 120 * 1000)
+    var pollInterval = null
+    
+    var startPolling = function() {
+      pollInterval = setInterval(checkUpdates, 120 * 1000)
+    }
+    
+    if (polling) startPolling()
+    
+    var control = $('device_control')
+    var label = $E('label')
+    var pollToggle = $E('input', { type: 'checkbox' })
+    pollToggle.checked = polling
+    label.appendChild(pollToggle)
+    label.appendChild(document.createTextNode(' update every 2 minutes'))
+    control.appendChild($E('br'))
+    control.appendChild(label)
+    
+    pollToggle.addEventListener('change', function(e) {
+      if (pollToggle.checked) {
+        if (!pollInterval) {
+          checkUpdates()
+          startPolling()
+        }
+      } else {
+        if (pollInterval) clearInterval(pollInterval)
+      }
+      setValue('polling', (polling = pollToggle.checked))
+    }, false)
   }
       
   var someTweetLink = find(timelineBody, '> tr[1] div.status-body a')
