@@ -72,7 +72,56 @@ if (timeline) {
       timelineBody = timeline.tBodies[0],
       enablePreloading = true,
       loading = false,
-      preloadingHandler = null
+      preloadingHandler = null,
+      polling = true
+  
+  if (polling) {
+    var checkUpdates = function() {
+      xhr({
+        method: 'get', url: 'http://twitter.com/statuses/friends_timeline.json?count=2',
+        onerror: function(req) { alert('ERROR ' + req.status) },
+        onload: function(req) {
+          var updates = eval(req.responseText)
+          for (var i = updates.length - 1; i >= 0; i--) {
+            var data = updates[i]
+            var update = timelineBody.rows[0].cloneNode(true)
+            update.id = "status_" + data.id
+            update.className = "hentry"
+            var thumb = find(update, 'td.thumb > a')
+            var thumbImg = down(thumb)
+            thumbImg.alt = data.user["name"]
+            thumbImg.src = data.user["profile_image_url"]
+            thumb.href = thumb.href.replace(/[^\/]+$/, data.user['screen_name'])
+            
+            var body = find(update, 'div.status-body')
+            var name = find(body, 'strong a')
+            name.href = thumb.href
+            name.firstChild.nodeValue = data.user["name"]
+            var text = find(body, '.entry-content')
+            text.innerHTML = data.text
+            var meta = find(body, '.meta')
+            var date = new Date(data.created_at)
+            meta.innerHTML = '<a href="http://twitter.com/' + data.user['screen_name'] +
+              '/statuses/' + data.id +
+              '" class="entry-date" rel="bookmark"><span class="published" title="">' +
+              date.getHours() + ':' + date.getMinutes() + '</span></a> from ' + data.source
+            
+            var actions = find(update, 'div.status_actions')
+            actions.innerHTML = null
+          		
+            timelineBody.insertBefore(update, timelineBody.rows[0])
+            
+            if (window.fluid) window.fluid.showGrowlNotification({
+              title: data.user['screen_name'], description: data.text,
+              identifier: "Endless Tweets"
+            })
+          }
+        }
+      })
+    }
+    
+    setTimeout(checkUpdates, 3000)
+  }
       
   var someTweetLink = find(timelineBody, '> tr[1] div.status-body a')
   if (someTweetLink) {
@@ -280,6 +329,12 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
   
 function $(id){
   return typeof id == 'string' ? document.getElementById(id) : id
+}
+
+function down(node) {
+  var child = node.firstChild
+  while(child && child.nodeType != Node.ELEMENT_NODE) child = child.nextSibling
+  return child
 }
 
 function $E(name, attributes, content) {
