@@ -81,54 +81,87 @@ if (timeline) {
       preloadingHandler = null
   
   if (home) {
-    var polling = getValue('polling', false)
+    var polling = getValue('polling', false),
+        current_user = $('me_name').textContent
     
     function deliverUpdate(data) {
+      var user = data.user
+      // deep-clone an existing tweet and only change its contents
       var update = timelineBody.rows[0].cloneNode(true)
-      update.id = "status_" + data.id
-      update.className = "hentry"
+      updateStatusInAttribute(update, 'id', data.id)
+      update.className = 'hentry'
+      // user's thumbnail
       var thumb = find(update, 'td.thumb > a')
       var thumbImg = down(thumb)
-      thumbImg.alt = data.user["name"]
-      thumbImg.src = data.user["profile_image_url"]
-      thumb.href = thumb.href.replace(/[^\/]+$/, data.user['screen_name'])
-      
+      thumbImg.alt = user.name
+      thumbImg.src = user.profile_image_url
+      updateStatusInAttribute(thumb, 'href', user.screen_name)
+      // main stuff: author and text
       var body = find(update, 'div.status-body')
       var name = find(body, 'strong a')
       name.href = thumb.href
-      name.firstChild.nodeValue = data.user["name"]
+      name.firstChild.nodeValue = user.screen_name
       var text = find(body, '.entry-content')
       text.innerHTML = data.text.replace(/\b(https?:\/\/\S+?)([.:;!?]?(?:\s|$))/, '<a href="$1">$1</a>$2')
+      // metadata
       var meta = find(body, '.meta')
       var date = new Date(data.created_at)
-      meta.innerHTML = '<a href="http://twitter.com/' + data.user['screen_name'] +
-        '/statuses/' + data.id +
+      meta.innerHTML = '<a href="http://twitter.com/' + user.screen_name + '/statuses/' + data.id +
         '" class="entry-date" rel="bookmark"><span class="published" title="">' +
         date.getHours() + ':' + date.getMinutes() + '</span></a> from ' + data.source
       
-      var actions = find(update, 'div.status_actions')
-      actions.innerHTML = null
-    		
-      timelineBody.insertBefore(update, timelineBody.rows[0])
+      // 'reply', 'favorite' icons
+      var actions = find(update, 'div.status_actions'),
+          actionIcons = actions.getElementsByTagName('img'),
+          favIcon = actionIcons[0], favLink = favIcon.parentNode,
+          replyIcon = actionIcons[1], replyLink = replyIcon.parentNode
       
-      if (window.fluid) window.fluid.showGrowlNotification({
-        title: data.user['screen_name'], description: data.text, icon: thumbImg,
-        identifier: data.id, onclick: function() { window.fluid.activate() }
-      })
+      updateStatusInAttribute(actions, 'id', data.id)
+      updateStatusInAttribute(favIcon, 'id', data.id)
+      updateStatusInAttribute(favLink, 'id', data.id)
+      // updateStatusInAttribute(favLink, 'onclick', data.id)
+      updateStatusInAttribute(favLink, 'href', data.id)
+      updateStatusInAttribute(replyIcon, 'title', user.screen_name)
+      updateStatusInAttribute(replyIcon, 'alt', user.screen_name)
+      updateStatusInAttribute(replyLink, 'href', user.screen_name)
+      replyLink.onclick = "replyTo('" + user.screen_name + "'); return false;"
+    	
+    	// finally, insert the new tweet in the timeline ...
+      timelineBody.insertBefore(update, timelineBody.rows[0])
+      // ... and remove the oldest tweet from the timeline
+      var oldestTweet = timeline.rows[timeline.rows.length - 1]
+      oldestTweet.parentNode.removeChild(oldestTweet)
+      
+      if (window.fluid && user.screen_name != current_user) {
+        var title = user.screen_name + ' updated ' + relativeTime(date) + ' ago'
+        window.fluid.showGrowlNotification({
+          title: title, description: data.text, icon: thumbImg,
+          identifier: data.id, onclick: function() { window.fluid.activate() }
+        })
+      }
+    }
+    
+    function updateStatusInAttribute(obj, prop, id) {
+      if (typeof id == 'number')
+        obj[prop] = obj[prop].replace(/([_\/])(\d{8,})\b/, '$1' + id)
+      else
+        obj[prop] = obj[prop].replace(/[\w-]+$/, id)
     }
     
     var checkUpdates = function() {
       xhr({
         url: 'http://twitter.com/statuses/friends_timeline.json?since_id=' + lastReadTweet,
+        // url: 'http://twitter.com/statuses/friends_timeline.json?count=2',
         method: 'get',
         onerror: function(req) { alert('ERROR ' + req.status) },
         onload: function(req) {
-          var updates = eval(req.responseText)
+          var data, updates = eval(req.responseText)
           for (var i = updates.length - 1; i >= 0; i--) {
-            var data = updates[i]
-            deliverUpdate(data)            
-            if (i == 0) setValue('lastReadTweet', (lastReadTweet = data.id))
+            data = updates[i]
+            // only show the update if an element with that status ID is not already present
+            if (!$('status_' + data.id)) deliverUpdate(data)            
           }
+          if (data) setValue('lastReadTweet', (lastReadTweet = data.id))
         }
       })
     }
@@ -377,6 +410,12 @@ function down(node) {
   return child
 }
 
+function up(node, type) {
+  do { node = node.parentNode }
+  while (node && node.nodeName.toLowerCase() != type)
+  return node
+}
+
 function $E(name, attributes, content) {
   if (typeof attributes == 'string') {
     content = attributes
@@ -505,4 +544,20 @@ if (typeof GM_xmlhttpRequest == "function") {
     req.open(params.method, params.url, true)
     req.send(params.data)
   }
+}
+
+// stolen from twitter.com (hope you guys don't mind)
+function relativeTime(date, relativeTo) {
+  if (!relativeTo) relativeTo = new Date
+  var delta = (relativeTo.getTime() - date.getTime()) / 1000
+  if (delta < 5) return 'less than 5 seconds'
+  else if (delta < 10)  return 'less than 10 seconds'
+  else if (delta < 20)  return 'less than 20 seconds'
+  else if (delta < 60)  return 'less than a minute'
+  else if (delta < 120) return 'about a minute'
+  else if (delta < (60*60))    return Math.round(delta / 60) + ' minutes'
+  else if (delta < (120*60))   return 'about an hour'
+  else if (delta < (24*60*60)) return 'about ' + Math.round(delta / 3600) + ' hours'
+  else if (delta < (48*60*60)) return '1 day'
+  else return Math.round(delta / 86400) + ' days'
 }
