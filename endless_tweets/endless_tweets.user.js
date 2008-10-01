@@ -81,14 +81,23 @@ if (timeline) {
       preloadingHandler = null
   
   if (home) {
-    var polling = getValue('polling', false),
+    var cloneSource, polling = getValue('polling', false),
         currentUser = $('me_name').textContent
+    
+    function getCloneSource() {
+      if (cloneSource && cloneSource.parentNode) return cloneSource
+      else {
+        var replyIcon = find(timeline, '.status_actions img[starts-with(@title,"reply")]')
+        cloneSource = up(replyIcon, 'tr')
+        return cloneSource
+      }
+    }
     
     function deliverUpdate(data) {
       var user = data.user
       var isCurrentUser = user.screen_name == currentUser
       // deep-clone an existing tweet and only change its contents
-      var update = timelineBody.rows[0].cloneNode(true)
+      var update = getCloneSource().cloneNode(true)
       updateStatusInAttribute(update, 'id', data.id)
       update.className = 'hentry'
       // user's thumbnail
@@ -122,11 +131,16 @@ if (timeline) {
       updateStatusInAttribute(favLink, 'id', data.id)
       updateStatusInAttribute(favLink, 'onclick', data.id)
       updateStatusInAttribute(favLink, 'href', data.id)
-      updateStatusInAttribute(replyIcon, 'title', user.screen_name)
-      updateStatusInAttribute(replyIcon, 'alt', user.screen_name)
-      updateStatusInAttribute(replyLink, 'href', user.screen_name)
-      replyLink.setAttribute('onclick', "replyTo('" + user.screen_name + "'); return false;")
-    	
+      
+      if (isCurrentUser) {
+        replyLink.parentNode.removeChild(replyLink)
+      } else {
+        updateStatusInAttribute(replyIcon, 'title', user.screen_name)
+        updateStatusInAttribute(replyIcon, 'alt', user.screen_name)
+        updateStatusInAttribute(replyLink, 'href', user.screen_name)
+        replyLink.setAttribute('onclick', "replyTo('" + user.screen_name + "'); return false;")
+      }
+      
     	// finally, insert the new tweet in the timeline ...
       timelineBody.insertBefore(update, timelineBody.rows[0])
       // ... and remove the oldest tweet from the timeline
@@ -413,8 +427,9 @@ function down(node) {
 }
 
 function up(node, type) {
-  do { node = node.parentNode }
-  while (node && node.nodeName.toLowerCase() != type)
+  do {
+    node = node.parentNode
+  } while (node && node.nodeName.toLowerCase() != type)
   return node
 }
 
