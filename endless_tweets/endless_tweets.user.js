@@ -82,10 +82,11 @@ if (timeline) {
   
   if (home) {
     var polling = getValue('polling', false),
-        current_user = $('me_name').textContent
+        currentUser = $('me_name').textContent
     
     function deliverUpdate(data) {
       var user = data.user
+      var isCurrentUser = user.screen_name == currentUser
       // deep-clone an existing tweet and only change its contents
       var update = timelineBody.rows[0].cloneNode(true)
       updateStatusInAttribute(update, 'id', data.id)
@@ -119,12 +120,12 @@ if (timeline) {
       updateStatusInAttribute(actions, 'id', data.id)
       updateStatusInAttribute(favIcon, 'id', data.id)
       updateStatusInAttribute(favLink, 'id', data.id)
-      // updateStatusInAttribute(favLink, 'onclick', data.id)
+      updateStatusInAttribute(favLink, 'onclick', data.id)
       updateStatusInAttribute(favLink, 'href', data.id)
       updateStatusInAttribute(replyIcon, 'title', user.screen_name)
       updateStatusInAttribute(replyIcon, 'alt', user.screen_name)
       updateStatusInAttribute(replyLink, 'href', user.screen_name)
-      replyLink.onclick = "replyTo('" + user.screen_name + "'); return false;"
+      replyLink.setAttribute('onclick', "replyTo('" + user.screen_name + "'); return false;")
     	
     	// finally, insert the new tweet in the timeline ...
       timelineBody.insertBefore(update, timelineBody.rows[0])
@@ -132,7 +133,8 @@ if (timeline) {
       var oldestTweet = timeline.rows[timeline.rows.length - 1]
       oldestTweet.parentNode.removeChild(oldestTweet)
       
-      if (window.fluid && user.screen_name != current_user) {
+      // never send Growl notifications for own tweets
+      if (window.fluid && !isCurrentUser) {
         var title = user.screen_name + ' updated ' + relativeTime(date) + ' ago'
         window.fluid.showGrowlNotification({
           title: title, description: data.text, icon: thumbImg,
@@ -142,10 +144,10 @@ if (timeline) {
     }
     
     function updateStatusInAttribute(obj, prop, id) {
-      if (typeof id == 'number')
-        obj[prop] = obj[prop].replace(/([_\/])(\d{8,})\b/, '$1' + id)
-      else
-        obj[prop] = obj[prop].replace(/[\w-]+$/, id)
+      var replacement, initial = obj.getAttribute(prop)
+      if (typeof id == 'number') replacement = initial.replace(/([_\/])(\d{8,})\b/, '$1' + id)
+      else replacement = initial.replace(/[\w-]+$/, id)
+      obj.setAttribute(prop, replacement)
     }
     
     var checkUpdates = function() {
@@ -372,7 +374,7 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
       GM_xmlhttpRequest({
         method: 'HEAD',
         url: sourceURL,
-        headers: { 'Accept-Encoding': '' }, // no gzip
+        headers: { 'Accept-Encoding': '' }, // no gzip, k thx bai
         onload: function(r) {
           var m = r.responseHeaders.match(/Content-Length: (\d+)/)
           validateScriptLength(Number(m[1]))
