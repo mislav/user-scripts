@@ -87,7 +87,7 @@ if (timeline) {
     function getCloneSource() {
       if (cloneSource && cloneSource.parentNode) return cloneSource
       else {
-        var replyIcon = find(timeline, '.status_actions img[starts-with(@title,"reply")]')
+        var replyIcon = find(timeline, '.actions a.repl')
         cloneSource = up(replyIcon, 'tr')
         return cloneSource
       }
@@ -120,25 +120,14 @@ if (timeline) {
         '" class="entry-date" rel="bookmark"><span class="published" title="">' +
         date.getHours() + ':' + date.getMinutes() + '</span></a> from ' + data.source
       
-      // 'reply', 'favorite' icons
-      var actions = find(update, 'div.status_actions'),
-          actionIcons = actions.getElementsByTagName('img'),
-          favIcon = actionIcons[0], favLink = favIcon.parentNode,
-          replyIcon = actionIcons[1], replyLink = replyIcon.parentNode
-      
-      updateStatusInAttribute(actions, 'id', data.id)
-      updateStatusInAttribute(favIcon, 'id', data.id)
-      updateStatusInAttribute(favLink, 'id', data.id)
-      updateStatusInAttribute(favLink, 'onclick', data.id)
-      updateStatusInAttribute(favLink, 'href', data.id)
+      // 'reply' icon
+      var replyLink = find(update, '.actions a.repl')
       
       if (isCurrentUser) {
         replyLink.parentNode.removeChild(replyLink)
       } else {
-        updateStatusInAttribute(replyIcon, 'title', user.screen_name)
-        updateStatusInAttribute(replyIcon, 'alt', user.screen_name)
-        updateStatusInAttribute(replyLink, 'href', user.screen_name)
-        replyLink.setAttribute('onclick', "replyTo('" + user.screen_name + "'); return false;")
+        updateStatusInAttribute(replyLink, 'title', user.screen_name)
+        replyLink.href = '/home?status=@' + user.screen_name + '&in_reply_to_status_id=' + data.id
       }
       
     	// finally, insert the new tweet in the timeline ...
