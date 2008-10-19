@@ -84,37 +84,43 @@ if (timeline) {
     var cloneSource, polling = getValue('polling', false),
         currentUser = $('me_name').textContent
     
-    function getCloneSource() {
-      if (cloneSource && cloneSource.parentNode) return cloneSource
-      else {
-        var replyIcon = find(timeline, '.actions a.repl')
-        cloneSource = up(replyIcon, 'tr')
-        return cloneSource
+    function cloneExistingTweet() {
+      if (!cloneSource || !cloneSource.parentNode) {
+        var replyLink = find(timeline, '.actions a.repl')
+        cloneSource = up(replyLink, 'tr')
       }
+      return cloneSource.cloneNode(true)
+    }
+    
+    function linkify(text) {
+      return text.
+        replace(/\b(https?:\/\/\S+?)([.,:;!?]?(?:\s|$))/, '<a href="$1">$1</a>$2').
+        replace(/(^|\W)@(\w+)/, '$1<a href="/$2">@$2</a>')
     }
     
     function deliverUpdate(data) {
       var user = data.user
       var isCurrentUser = user.screen_name == currentUser
       // deep-clone an existing tweet and only change its contents
-      var update = getCloneSource().cloneNode(true)
+      var update = cloneExistingTweet()
       updateStatusInAttribute(update, 'id', data.id)
-      update.className = 'hentry'
+      update.className = 'hentry status'
       // user's thumbnail
-      var thumb = find(update, 'td.thumb > a')
+      var thumb = find(update, '.thumb > a')
       var thumbImg = down(thumb)
       thumbImg.alt = user.name
       thumbImg.src = user.profile_image_url
       updateStatusInAttribute(thumb, 'href', user.screen_name)
       // main stuff: author and text
-      var body = find(update, 'div.status-body')
+      var body = find(update, '.status-body')
       var name = find(body, 'strong a')
       name.href = thumb.href
+      name.title = user.name
       name.firstChild.nodeValue = user.screen_name
       var text = find(body, '.entry-content')
-      text.innerHTML = data.text.replace(/\b(https?:\/\/\S+?)([.:;!?]?(?:\s|$))/, '<a href="$1">$1</a>$2')
+      text.innerHTML = linkify(data.text)
       // metadata
-      var meta = find(body, '.meta')
+      var meta = find(body, '.entry-meta')
       var date = new Date(data.created_at)
       meta.innerHTML = '<a href="http://twitter.com/' + user.screen_name + '/statuses/' + data.id +
         '" class="entry-date" rel="bookmark"><span class="published" title="">' +
