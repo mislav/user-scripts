@@ -75,7 +75,7 @@ if (typeof GM_registerMenuCommand == "function") {
 
 if (timeline) {
   var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
-      timelineBody = timeline.tBodies[0],
+      timelineBody = $('timeline_body'),
       enablePreloading = true,
       loading = false,
       preloadingHandler = null
@@ -86,7 +86,7 @@ if (timeline) {
     
     function cloneExistingTweet() {
       if (!cloneSource || !cloneSource.parentNode) {
-        var replyLink = find(timeline, '.actions a.repl')
+        var replyLink = find(timelineBody, '.actions a.repl')
         cloneSource = up(replyLink, 'tr')
       }
       return cloneSource.cloneNode(true)
@@ -264,7 +264,7 @@ if (timeline) {
             table.innerHTML = match[1]
             log("found %s rows", table.rows.length)
             match = null
-            var newTimelineBody = table.tBodies[0]
+            var newTimelineBody = table.tBodies[1]
             newTimelineBody.id = ""
             forEach(newTimelineBody.rows, function(row) { rows.push(row) })
             // don't show tweets already present in the document
@@ -297,7 +297,7 @@ if (timeline) {
     #timeline td.content span.meta { white-space: nowrap }\
     #timeline td[align='right'] { padding-top:2px; padding-bottom:2px; }\
     #timeline tbody { border-top: " + pageDelimiterStyle + " }\
-    #timeline tbody:first-child { border-top: none }\
+    #timeline #timeline_body, #timeline #timeline_body_for_update { border-top: none }\
     #timeline tbody > tr:last-child td { border-bottom: none }\
     #timeline { border-bottom: 1px dashed #D2DADA }\
     body#profile #content table#timeline tr:first-child td span.entry-content { font-size: 1em }\
@@ -362,7 +362,7 @@ var wrapper = find(null, '#content > div.wrapper')
 if (wrapper && typeof GM_xmlhttpRequest == "function") {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
       sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      scriptLength = 20240,
+      scriptLength = 20277,
       updateAvailable = getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
