@@ -300,12 +300,6 @@ if (timeline) {
     #timeline #timeline_body, #timeline #timeline_body_for_update { border-top: none }\
     #timeline tbody > tr:last-child td { border-bottom: none }\
     #timeline { border-bottom: 1px dashed #D2DADA }\
-    body#profile #content table#timeline tr:first-child td span.entry-content { font-size: 1em }\
-    body#profile #content table#timeline tbody:first-child tr:first-child td span.entry-content { font-size: 1.77em }\
-    body#profile #content table#timeline tr:first-child td { padding: 7px 3px; line-height: 1.1em }\
-    body#profile #content table#timeline tbody:first-child tr:first-child td { padding: 1em 0; line-height: 1.5em; }\
-    body#profile #content table#timeline tr:first-child td span.entry-meta { display: inline }\
-    body#profile #content table#timeline tbody:first-child tr:first-child td span.entry-meta { display: block }\
     #timeline tr.last-read { background: #ffffe8 }\
     #timeline tr.aready-read { color: #666 }\
     #timeline tr.aready-read a { color: #555 !important; text-decoration: underline }\
