@@ -301,8 +301,8 @@ if (timeline) {
     #timeline tbody > tr:last-child td { border-bottom: none }\
     #timeline { border-bottom: 1px dashed #D2DADA }\
     #timeline tr.last-read { background: #ffffe8 }\
-    #timeline tr.aready-read { color: #666 }\
-    #timeline tr.aready-read a { color: #555 !important; text-decoration: underline }\
+    #timeline tr.aready-read { color: #555 }\
+    #timeline tr.aready-read a { color: #444 !important; }\
     #timeline tr.aready-read td.content strong a { text-decoration: none }\
     #timeline tr.aready-read td.thumb img { opacity: .6 }\
     #timeline tr.hentry_hover.last-read:hover { background: #ffc }\
