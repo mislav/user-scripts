@@ -94,8 +94,8 @@ if (timeline) {
     
     function linkify(text) {
       return text.
-        replace(/\b(https?:\/\/\S+?)([.,:;!?]?(?:\s|$))/, '<a href="$1">$1</a>$2').
-        replace(/(^|\W)@(\w+)/, '$1<a href="/$2">@$2</a>')
+        replace(/\b(https?:\/\/\S+?)([.,:;!?]?(?:\s|$))/g, '<a href="$1">$1</a>$2').
+        replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
     }
     
     function deliverUpdate(data) {
