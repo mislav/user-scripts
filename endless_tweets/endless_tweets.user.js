@@ -86,7 +86,8 @@ if (timeline) {
   
   if (home) {
     var cloneSource, polling = getValue('polling', false),
-        currentUser = $('me_name').textContent
+        currentUser = $('me_name').textContent,
+        growls = window.fluid ? [] : null
     
     function cloneExistingTweet() {
       if (!cloneSource || !cloneSource.parentNode) {
@@ -153,11 +154,11 @@ if (timeline) {
       oldestTweet.parentNode.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
-      if (window.fluid && !isCurrentUser) {
+      if (growls && !isCurrentUser) {
         var title = user.screen_name + ' updated ' + relativeTime(date) + ' ago'
-        window.fluid.showGrowlNotification({
+        growls.push({
           title: title, description: data.text, icon: thumbImg,
-          identifier: data.id, onclick: function() { window.fluid.activate() }
+          identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
         })
       }
     }
@@ -169,10 +170,16 @@ if (timeline) {
       obj.setAttribute(prop, replacement)
     }
     
+    var debug = false // temp set to true for testing purposes
+    
     var checkUpdates = function() {
+      if (debug)
+        var url = 'http://twitter.com/statuses/friends_timeline.json?count=5'
+      else
+        var url = 'http://twitter.com/statuses/friends_timeline.json?since_id=' + lastReadTweet
+      
       xhr({
-        url: 'http://twitter.com/statuses/friends_timeline.json?since_id=' + lastReadTweet,
-        // url: 'http://twitter.com/statuses/friends_timeline.json?count=2',
+        url: url,
         method: 'get',
         onerror: function(req) { alert('ERROR ' + req.status) },
         onload: function(req) {
@@ -180,7 +187,22 @@ if (timeline) {
           for (var i = updates.length - 1; i >= 0; i--) {
             data = updates[i]
             // only show the update if an element with that status ID is not already present
-            if (!$('status_' + data.id)) deliverUpdate(data)            
+            if (debug || !$('status_' + data.id)) deliverUpdate(data)
+          }
+          if (growls) {
+            var limit = growls.length - 4
+            for (var i = growls.length - 1; i >= 0; i--) {
+              if (i == limit) {
+                window.fluid.showGrowlNotification({
+                  title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
+                  description: '',
+                  onclick: function() { window.fluid.activate() }
+                })
+                break
+              }
+              window.fluid.showGrowlNotification(growls[i])
+            }
+            growls = []
           }
           if (data) setValue('lastReadTweet', (lastReadTweet = data.id))
         }
@@ -190,7 +212,7 @@ if (timeline) {
     var pollInterval = null
     
     var startPolling = function() {
-      pollInterval = setInterval(checkUpdates, 120 * 1000)
+      pollInterval = setInterval(checkUpdates, (debug ? 12 : 120) * 1000)
     }
     
     if (polling) startPolling()
