@@ -7,6 +7,10 @@
 // @exclude        http://twitter.com/help/*
 // ==/UserScript==
 
+(function(Twitter){
+  // wrap everything in an anonymous function because this script doesn't run
+  // in a wrapper when used in GreaseKit or other contexts other than Firefox
+  
 if (typeof GM_getValue == "function") {
   var getValue = GM_getValue
   var setValue = GM_setValue
@@ -60,7 +64,7 @@ if (typeof GM_getValue == "function") {
 var timeline  = $('timeline'),
     home      = window.location.pathname == '/home',
     debugMode = getValue('debugMode', false)
-    
+
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0)
   var oldLastRead   = lastReadTweet
@@ -567,3 +571,5 @@ function relativeTime(date, relativeTo) {
   else if (delta < (48*60*60)) return '1 day'
   else return Math.round(delta / 86400) + ' days'
 }
+
+})(typeof twttr == "undefined" ? null : twttr)
