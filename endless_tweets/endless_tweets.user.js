@@ -132,12 +132,18 @@ if (timeline) {
       
       // 'reply' icon
       var replyLink = find(update, '.actions a.repl')
-      
       if (isCurrentUser) {
+        // prevent user from replying to himself
         replyLink.parentNode.removeChild(replyLink)
       } else {
         updateStatusInAttribute(replyLink, 'title', user.screen_name)
         replyLink.href = '/home?status=@' + user.screen_name + '&in_reply_to_status_id=' + data.id
+      }
+      // if we accidentally cloned a faved link, reset that icon
+      var favedLink = find(update, '.actions a.fav')
+      if (favedLink) {
+        favedLink.className = 'non-fav'
+        favedLink.title = favedLink.title.replace('un-', '')
       }
       
     	// finally, insert the new tweet in the timeline ...
