@@ -4,6 +4,7 @@ require 'curl'
 require 'cgi'
 
 class Gm < Thor
+  desc 'check', %(Checks scriptLength property on both local and remote file)
   def check
     Net::HTTP.start('userscripts.org') do |http|
       self.class.scripts.each do |name, id|
