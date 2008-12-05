@@ -63,7 +63,8 @@ if (typeof GM_getValue == "function") {
 
 var timeline  = $('timeline'),
     home      = window.location.pathname == '/home',
-    debugMode = getValue('debugMode', false)
+    debugMode = getValue('debugMode', false),
+    singleTweetPage = !home && 'show' == document.body.id
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0)
@@ -77,7 +78,7 @@ if (typeof GM_registerMenuCommand == "function") {
   })
 }
 
-if (timeline) {
+if (timeline && !singleTweetPage) {
   var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
       timelineBody = $('timeline_body'),
       enablePreloading = true,
@@ -342,6 +343,10 @@ if (timeline) {
     #pagination-message + div.bottom_nav { margin-top: 0 !important; }\
     #timeline td.thumb img { width:48px; height:48px; }\
     a.googlemap { display: block; margin-top: 4px; }\
+    ")
+} else if (singleTweetPage) {
+  addCSS("\
+    body#show #content .hentry td.status-body div { width: auto !important }\
     ")
 }
 
