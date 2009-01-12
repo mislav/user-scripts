@@ -193,7 +193,7 @@ if (timeline && !singleTweetPage) {
           if (growls) {
             var limit = growls.length - 4
             for (var i = growls.length - 1; i >= 0; i--) {
-              if (i == limit) {
+              if (i < limit) {
                 window.fluid.showGrowlNotification({
                   title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
                   description: '',
