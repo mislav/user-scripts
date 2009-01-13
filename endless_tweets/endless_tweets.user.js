@@ -7,7 +7,7 @@
 // @exclude        http://twitter.com/help/*
 // ==/UserScript==
 
-(function(Twitter){
+(function(jQuery){
   // wrap everything in an anonymous function because this script doesn't run
   // in a wrapper when used in GreaseKit or other contexts other than Firefox
   
@@ -110,7 +110,7 @@ if (timeline && !singleTweetPage) {
       // deep-clone an existing tweet and only change its contents
       var update = cloneExistingTweet()
       updateStatusInAttribute(update, 'id', data.id)
-      update.className = 'hentry status'
+      update.className = 'hentry status u-' + user.screen_name
       // user's thumbnail
       var thumb = find(update, '.thumb > a')
       var thumbImg = down(thumb)
@@ -140,13 +140,17 @@ if (timeline && !singleTweetPage) {
       } else {
         updateStatusInAttribute(replyLink, 'title', user.screen_name)
         replyLink.href = '/home?status=@' + user.screen_name + '&in_reply_to_status_id=' + data.id
+        jQuery(replyLink).isReplyable()
       }
       // if we accidentally cloned a faved link, reset that icon
       var favedLink = find(update, '.actions a.fav')
       if (favedLink) {
         favedLink.className = 'non-fav'
         favedLink.title = favedLink.title.replace('un-', '')
+      } else {
+        favedLink = find(update, '.actions a.non-fav')
       }
+      jQuery(favedLink).isFavoriteable({ hideUnfavorited: false })
       
     	// finally, insert the new tweet in the timeline ...
       timelineBody.insertBefore(update, timelineBody.rows[0])
@@ -182,7 +186,7 @@ if (timeline && !singleTweetPage) {
       xhr({
         url: url,
         method: 'get',
-        onerror: function(req) { alert('ERROR ' + req.status) },
+        onerror: function(req) { log('ERROR ' + req.status) },
         onload: function(req) {
           var data, updates = eval(req.responseText)
           for (var i = updates.length - 1; i >= 0; i--) {
@@ -605,4 +609,7 @@ function relativeTime(date, relativeTo) {
   else return Math.round(delta / 86400) + ' days'
 }
 
-})(typeof twttr == "undefined" ? null : twttr)
+// get a reference to the jQuery object, even if it requires
+// breaking out of the GreaseMonkey sandbox in Firefox
+// (we need to trust Twitter.com)
+})(typeof jQuery == "undefined" ? unsafeWindow.jQuery : jQuery)
