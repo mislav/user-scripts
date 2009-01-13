@@ -350,7 +350,8 @@ if (timeline && !singleTweetPage) {
     ")
 } else if (singleTweetPage) {
   addCSS("\
-    body#show #content .hentry td.status-body div { width: auto !important }\
+    body#show #permalink:hover { background: none !important }\
+    body#show #content .actions input[type=image] { margin: 2px 0 0 2px }\
     ")
 }
 
@@ -438,7 +439,7 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
     wrapper.insertBefore(notice, wrapper.firstChild)
     
     addCSS("\
-      #userscript_update { text-align: right; color: gray }\
+      #userscript_update { text-align: right; color: gray; margin: -.5em 0 .5em 0; }\
       #userscript_update a { text-decoration: underline }\
       ")
   }
