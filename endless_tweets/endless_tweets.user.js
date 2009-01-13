@@ -161,8 +161,9 @@ if (timeline && !singleTweetPage) {
       // never send Growl notifications for own tweets
       if (growls && !isCurrentUser) {
         var title = user.screen_name + ' updated ' + relativeTime(date) + ' ago'
+        var description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         growls.push({
-          title: title, description: data.text, icon: thumbImg,
+          title: title, description: description, icon: thumbImg,
           identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
         })
       }
