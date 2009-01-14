@@ -3,8 +3,7 @@
 // @namespace      http://mislav.caboo.se/
 // @description    Loads older tweets endlessly when you scroll on Twitter
 // @include        http://twitter.com/*
-// @exclude        http://twitter.com/help
-// @exclude        http://twitter.com/help/*
+// @include        https://twitter.com/*
 // ==/UserScript==
 
 (function(jQuery){
