@@ -98,10 +98,28 @@ if (timeline && !singleTweetPage) {
       return cloneSource.cloneNode(true)
     }
     
+    function countOccurences(string, pattern) {
+      return string.split(pattern).length - 1
+    }
+    
+    var brackets = { ']': '[', ')': '(', '}': '{' }
+    
     function linkify(text) {
-      return text.
-        replace(/\b(https?:\/\/\S+?)([.,:;!?]?(?:\s|$))/g, '<a href="$1">$1</a>$2').
-        replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+      var linked = text.replace(/\b(https?:\/\/|www\.)[^\s]+/g, function(href) {
+        // check for punctuation character at the end
+        var punct = '', match = href.match(/[^\w\/-]$/)
+        if (match) {
+          var punct = match[0], opening = brackets[punct]
+          // ignore closing bracket if it should be part of the URL (think Wikipedia links)
+          if (opening && countOccurences(href, opening) == countOccurences(href, punct)) punct = ''
+          // in other cases, last punctuation character should not be a part of the URL
+          else href = href.slice(0, -1)
+        }
+        
+        var fullHref = (href.indexOf('http') == 0) ? href : 'http://' + href
+        return '<a href="' + fullHref + '">' + href + '</a>' + punct
+      })
+      return linked.replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
     }
     
     function deliverUpdate(data) {
