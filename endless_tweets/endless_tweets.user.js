@@ -458,7 +458,8 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
     wrapper.insertBefore(notice, wrapper.firstChild)
     
     addCSS("\
-      #userscript_update { text-align: right; color: gray; margin: -.5em 0 .5em 0; }\
+      #userscript_update { text-align: right; color: gray; }\
+      body#show #userscript_update { margin: -.6em 0 .6em 0; }\
       #userscript_update a { text-decoration: underline }\
       ")
   }
