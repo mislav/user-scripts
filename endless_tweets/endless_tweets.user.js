@@ -7,8 +7,6 @@
 // ==/UserScript==
 
 (function(jQuery){
-  // wrap everything in an anonymous function because this script doesn't run
-  // in a wrapper when used in GreaseKit or other contexts other than Firefox
   
 if (typeof GM_getValue == "function") {
   var getValue = GM_getValue
