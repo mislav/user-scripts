@@ -325,6 +325,11 @@ if (timeline && !singleTweetPage) {
             log("%s rows to insert", newTimelineBody.rows.length)
             
             timeline.appendChild(newTimelineBody)
+            var jqTimeline = jQuery(newTimelineBody)
+            jqTimeline.find(".fav,.non-fav").isFavoriteable({ hideUnfavorited: false })
+            jqTimeline.find(".repl").isReplyable()
+            jqTimeline.find(".del").isDeleteable()
+
             forEach(newTimelineBody.rows, processTweet)
             log("page %s processed", pageNumber)
             newTimelineBody = table = null
