@@ -485,7 +485,7 @@ function $E(name, attributes, content) {
 }
 
 function forEach(object, block, context) {
-  var xpath = object.constructor == XPathResult
+  var xpath = typeof object.snapshotItem == "function"
   for (var i = 0, length = xpath ? object.snapshotLength : object.length; i < length; i++)
     block.call(context, xpath ? object.snapshotItem(i) : object[i], i, object)
 }
