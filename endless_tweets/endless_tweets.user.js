@@ -154,7 +154,6 @@ if (timeline && !singleTweetPage) {
       } else {
         updateStatusInAttribute(replyLink, 'title', user.screen_name)
         replyLink.href = '/home?status=@' + user.screen_name + '&in_reply_to_status_id=' + data.id
-        jQuery(replyLink).isReplyable()
       }
       // if we accidentally cloned a faved link, reset that icon
       var favedLink = find(update, '.actions a.fav')
@@ -164,7 +163,6 @@ if (timeline && !singleTweetPage) {
       } else {
         favedLink = find(update, '.actions a.non-fav')
       }
-      jQuery(favedLink).isFavoriteable({ hideUnfavorited: false })
       
     	// finally, insert the new tweet in the timeline ...
       timeline.insertBefore(update, timeline.firstChild)
