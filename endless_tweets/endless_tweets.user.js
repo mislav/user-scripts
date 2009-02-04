@@ -273,8 +273,8 @@ if (timeline && !singleTweetPage) {
     timeline.parentNode.insertBefore(message, timeline.nextSibling)
   }
 
-  function processTweet(row) {
-    var id = Number(row.id.split('_')[1])
+  function processTweet(item) {
+    var id = Number(item.id.split('_')[1])
     
     if (home) {
       if (id > lastReadTweet) {
@@ -282,9 +282,9 @@ if (timeline && !singleTweetPage) {
         setValue('lastReadTweet', (lastReadTweet = id))
       } else if (id == oldLastRead) {
         stopPreloading("You have reached the last read tweet.")
-        row.className += ' last-read'
+        item.className += ' last-read'
       } else if (id < oldLastRead && !enablePreloading) {
-        row.className += ' aready-read'
+        item.className += ' aready-read'
       }
     }
   }
