@@ -77,7 +77,6 @@ if (typeof GM_registerMenuCommand == "function") {
 
 if (timeline && !singleTweetPage) {
   var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
-      timelineBody = $('timeline_body'),
       enablePreloading = true,
       loading = false,
       preloadingHandler = null
@@ -89,8 +88,8 @@ if (timeline && !singleTweetPage) {
     
     function cloneExistingTweet() {
       if (!cloneSource || !cloneSource.parentNode) {
-        var replyLink = find(timelineBody, '.actions a.repl')
-        cloneSource = up(replyLink, 'tr')
+        var replyLink = find(timeline, '.actions a.repl')
+        cloneSource = up(replyLink, '.status')
       }
       return cloneSource.cloneNode(true)
     }
@@ -168,10 +167,10 @@ if (timeline && !singleTweetPage) {
       jQuery(favedLink).isFavoriteable({ hideUnfavorited: false })
       
     	// finally, insert the new tweet in the timeline ...
-      timelineBody.insertBefore(update, timelineBody.rows[0])
-      // ... and remove the oldest tweet from the timeline
-      var oldestTweet = timeline.rows[timeline.rows.length - 1]
-      oldestTweet.parentNode.removeChild(oldestTweet)
+      timeline.insertBefore(update, timeline.firstChild)
+      // TODO: ... and remove the oldest tweet from the timeline
+      //var oldestTweet = timeline.rows[timeline.rows.length - 1]
+      //oldestTweet.parentNode.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
       if (growls && !isCurrentUser) {
@@ -260,7 +259,7 @@ if (timeline && !singleTweetPage) {
     }, false)
   }
       
-  var someTweetLink = find(timelineBody, '> tr[1] div.status-body a')
+  var someTweetLink = find(timeline, '> li[1] .status-body a')
   if (someTweetLink) {
     var pageDelimiterColor = getStyle(someTweetLink, 'color')
     var pageDelimiterStyle = '1px dotted ' + pageDelimiterColor
@@ -292,7 +291,7 @@ if (timeline && !singleTweetPage) {
     }
   }
   
-  forEach(timelineBody.rows, processTweet)
+  forEach(select('> li', timeline), processTweet)
 
   if (enablePreloading && nextPageLink) {
     log('attaching scroll handler')
@@ -309,30 +308,27 @@ if (timeline && !singleTweetPage) {
           method: 'GET',
           url: nextPageLink.href,
           onload: function(r) {
-            var row, rows = [],
-                match = r.responseText.match(/<table[^>]*id="timeline"[^>]*>([\s\S]+?)<\/table>/),
+            var update, updates,
+                match = r.responseText.match(/<ol[^>]*id="timeline"[^>]*>([\s\S]+?)<\/ol>/),
                 hasNextPage = /<a [^>]*rel="prev"/.test(r.responseText),
-                table = $E('table')
+                list = $E('ol')
             
-            table.innerHTML = match[1]
-            log("found %s rows", table.rows.length)
+            if (!match) log(r.responseText)
+            
+            list.innerHTML = match[1]
+            updates = xpath2array(select('> li', list))
+            log("found %s updates", updates.length)
             match = null
-            var newTimelineBody = table.tBodies[1]
-            newTimelineBody.id = ""
-            forEach(newTimelineBody.rows, function(row) { rows.push(row) })
-            // don't show tweets already present in the document
-            rows.forEach(function(row) { if ($(row.id)) newTimelineBody.removeChild(row) })
-            log("%s rows to insert", newTimelineBody.rows.length)
             
-            timeline.appendChild(newTimelineBody)
-            var jqTimeline = jQuery(newTimelineBody)
-            jqTimeline.find(".fav,.non-fav").isFavoriteable({ hideUnfavorited: false })
-            jqTimeline.find(".repl").isReplyable()
-            jqTimeline.find(".del").isDeleteable()
-
-            forEach(newTimelineBody.rows, processTweet)
-            log("page %s processed", pageNumber)
-            newTimelineBody = table = null
+            // don't show tweets already present in the document
+            updates.forEach(function(update) {
+              if (!$(update.id)) {
+                timeline.appendChild(update)
+                processTweet(update)
+              }
+            })
+            
+            update, updates, list = null
 
             if (hasNextPage) {
               // bump the page number on next page link
@@ -351,22 +347,15 @@ if (timeline && !singleTweetPage) {
   }
   
   addCSS("\
-    #timeline { border-collapse: collapse }\
-    #timeline td.content span.meta { white-space: nowrap }\
-    #timeline td[align='right'] { padding-top:2px; padding-bottom:2px; }\
-    #timeline tbody { border-top: " + pageDelimiterStyle + " }\
-    #timeline #timeline_body, #timeline #timeline_body_for_update { border-top: none }\
-    #timeline tbody > tr:last-child td { border-bottom: none }\
-    #timeline { border-bottom: 1px dashed #D2DADA }\
-    #timeline tr.last-read { background: #ffffe8 }\
-    #timeline tr.aready-read { color: #555 }\
-    #timeline tr.aready-read a { color: #444 !important; }\
-    #timeline tr.aready-read td.content strong a { text-decoration: none }\
-    #timeline tr.aready-read td.thumb img { opacity: .6 }\
-    #timeline tr.hentry_hover.last-read:hover { background: #ffc }\
+    #timeline .status-body .meta { white-space: nowrap }\
+    #timeline .status.last-read { background: #ffffe8 }\
+    #timeline .status.aready-read { color: #555 }\
+    #timeline .status.aready-read a { color: #444 !important; }\
+    #timeline .status.aready-read td.content strong a { text-decoration: none }\
+    #timeline .status.aready-read td.thumb img { opacity: .6 }\
+    #timeline .status.hentry_hover.last-read:hover { background: #ffc }\
     #pagination-message { font-style:italic; text-align:right; margin:1em 0 !important; }\
     #pagination-message + div.bottom_nav { margin-top: 0 !important; }\
-    #timeline td.thumb img { width:48px; height:48px; }\
     a.googlemap { display: block; margin-top: 4px; }\
     ")
 } else if (singleTweetPage) {
