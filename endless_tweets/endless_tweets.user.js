@@ -390,7 +390,7 @@ if (friends.length) {
 
 // *** iPhone location map *** //
 
-var address = find(null, '#side .vcard span.adr')
+var address = find(null, '#side .vcard .adr')
 
 if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   var API_KEY = 'ABQIAAAAfOaovFhDnVE3QsBZj_YthxSnhvsz13Tv4UkZBHR3eJwOymtuUxT045UEYNAo1HL_pePrMexH4SYngg',
@@ -401,7 +401,7 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 
 // *** update notification *** //
 
-var wrapper = find(null, '#content > div.wrapper')
+var wrapper = find(null, '#content > .wrapper')
 
 if (wrapper && typeof GM_xmlhttpRequest == "function") {
   var scriptURL = 'http://userscripts.org/scripts/show/24398',
