@@ -124,7 +124,11 @@ if (timeline && !singleTweetPage) {
       // deep-clone an existing tweet and only change its contents
       var update = cloneExistingTweet()
       updateStatusInAttribute(update, 'id', data.id)
-      update.className = 'hentry status u-' + user.screen_name
+      removeClassName(update, 'u-\\S+')
+      addClassName(update, 'u-' + user.screen_name)
+      removeClassName(update, 'reply')
+      removeClassName(update, 'last-read')
+      removeClassName(update, 'already-read')
       // user's thumbnail
       var thumb = find(update, '.thumb > a')
       var thumbImg = down(thumb)
@@ -158,7 +162,8 @@ if (timeline && !singleTweetPage) {
       // if we accidentally cloned a faved link, reset that icon
       var favedLink = find(update, '.actions a.fav')
       if (favedLink) {
-        favedLink.className = 'non-fav'
+        removeClassName(favedLink, 'fav')
+        addClassName(favedLink, 'non-fav')
         favedLink.title = favedLink.title.replace('un-', '')
       } else {
         favedLink = find(update, '.actions a.non-fav')
@@ -282,9 +287,9 @@ if (timeline && !singleTweetPage) {
         setValue('lastReadTweet', (lastReadTweet = id))
       } else if (id == oldLastRead) {
         stopPreloading("You have reached the last read tweet.")
-        item.className += ' last-read'
+        addClassName(item, 'last-read')
       } else if (id < oldLastRead && !enablePreloading) {
-        item.className += ' aready-read'
+        addClassName(item, 'aready-read')
       }
     }
   }
@@ -466,11 +471,41 @@ function down(node) {
   return child
 }
 
-function up(node, type) {
+function up(node, selector) {
   do {
     node = node.parentNode
-  } while (node && node.nodeName.toLowerCase() != type)
+  } while (node && !matchesCss(node, selector))
   return node
+}
+
+function matchesCss(node, selector) {
+  var firstChar = selector.charAt(0)
+  
+  if (firstChar == '.') {
+    return hasClassName(node, selector.slice(1, selector.length))
+  } else if (firstChar == '#') {
+    return node.id == selector.slice(1, selector.length)
+  } else {
+    return node.nodeName.toLowerCase() == selector
+  }
+}
+
+function hasClassName(element, className) {
+  var elementClassName = element.className
+  return (elementClassName.length > 0 && (elementClassName == className || 
+    new RegExp("(^|\\s)" + className + "(\\s|$)").test(elementClassName)))
+}
+
+function addClassName(element, className) {
+  if (!hasClassName(element, className))
+    element.className += (element.className ? ' ' : '') + className
+  return element
+}
+
+function removeClassName(element, className) {
+  element.className = element.className.replace(
+    new RegExp("(^|\\s+)" + className + "(\\s+|$)"), ' ')
+  return element
 }
 
 function $E(name, attributes, content) {
