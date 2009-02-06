@@ -206,11 +206,14 @@ if (timeline && !singleTweetPage) {
         method: 'get',
         onerror: function(req) { log('ERROR ' + req.status) },
         onload: function(req) {
-          var data, updates = eval(req.responseText)
+          var data, updates = eval(req.responseText), count = 0
           for (var i = updates.length - 1; i >= 0; i--) {
             data = updates[i]
             // only show the update if an element with that status ID is not already present
-            if (debug || !$('status_' + data.id)) deliverUpdate(data)
+            if (debug || !$('status_' + data.id)) {
+              deliverUpdate(data)
+              count++
+            }
           }
           if (growls) {
             var limit = growls.length - 4
@@ -227,7 +230,10 @@ if (timeline && !singleTweetPage) {
             }
             growls = []
           }
-          if (data) setValue('lastReadTweet', (lastReadTweet = data.id))
+          if (count) {
+            setValue('lastReadTweet', (lastReadTweet = data.id))
+            jQuery.livequery.run()
+          }
         }
       })
     }
@@ -323,14 +329,15 @@ if (timeline && !singleTweetPage) {
             log("found %s updates", updates.length)
             match = null
             
-            // don't show tweets already present in the document
             updates.forEach(function(update) {
+              // don't show tweets already present in the document
               if (!$(update.id)) {
                 timeline.appendChild(update)
                 processTweet(update)
               }
             })
             
+            jQuery.livequery.run()
             update, updates, list = null
 
             if (hasNextPage) {
