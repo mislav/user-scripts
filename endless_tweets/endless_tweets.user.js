@@ -165,15 +165,13 @@ if (timeline && !singleTweetPage) {
         removeClassName(favedLink, 'fav')
         addClassName(favedLink, 'non-fav')
         favedLink.title = favedLink.title.replace('un-', '')
-      } else {
-        favedLink = find(update, '.actions a.non-fav')
       }
       
     	// finally, insert the new tweet in the timeline ...
       timeline.insertBefore(update, timeline.firstChild)
-      // TODO: ... and remove the oldest tweet from the timeline
-      //var oldestTweet = timeline.rows[timeline.rows.length - 1]
-      //oldestTweet.parentNode.removeChild(oldestTweet)
+      // ... and remove the oldest tweet from the timeline
+      var oldestTweet = find(timeline, '> li[last()]')
+      timeline.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
       if (growls && !isCurrentUser) {
