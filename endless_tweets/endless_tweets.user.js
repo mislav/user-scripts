@@ -375,7 +375,7 @@ if (timeline && !singleTweetPage) {
 
 // *** sorting of friends (sidebar) *** //
 
-var friends = xpath2array(select('#side #friends > span.vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
+var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
 
 function compare(a, b, filter) {
   if (filter) {
