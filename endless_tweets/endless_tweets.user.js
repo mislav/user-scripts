@@ -82,17 +82,10 @@ if (timeline && !singleTweetPage) {
       preloadingHandler = null
   
   if (home) {
-    var cloneSource, polling = getValue('polling', false),
-        currentUser = $('me_name').textContent,
+    var updateContainer = $E('ol'),
+        polling = getValue('polling', false),
+        currentUser = strip($('me_name').textContent),
         growls = window.fluid ? [] : null
-    
-    function cloneExistingTweet() {
-      if (!cloneSource || !cloneSource.parentNode) {
-        var replyLink = find(timeline, '.actions a.repl')
-        cloneSource = up(replyLink, '.status')
-      }
-      return cloneSource.cloneNode(true)
-    }
     
     function countOccurences(string, pattern) {
       return string.split(pattern).length - 1
@@ -119,76 +112,64 @@ if (timeline && !singleTweetPage) {
     }
     
     function deliverUpdate(data) {
-      var user = data.user
-      var isCurrentUser = user.screen_name == currentUser
-      // deep-clone an existing tweet and only change its contents
-      var update = cloneExistingTweet()
-      updateStatusInAttribute(update, 'id', data.id)
-      removeClassName(update, 'u-\\S+')
-      addClassName(update, 'u-' + user.screen_name)
-      removeClassName(update, 'reply')
-      removeClassName(update, 'last-read')
-      removeClassName(update, 'already-read')
-      // user's thumbnail
-      var thumb = find(update, '.thumb > a')
-      var thumbImg = down(thumb)
-      thumbImg.alt = user.name
-      thumbImg.src = user.profile_image_url
-      updateStatusInAttribute(thumb, 'href', user.screen_name)
-      // main stuff: author and text
-      var body = find(update, '.status-body')
-      var name = find(body, 'strong a')
-      name.href = thumb.href
-      name.title = user.name
-      name.firstChild.nodeValue = user.screen_name
-      var text = find(body, '.entry-content')
-      text.innerHTML = linkify(data.text)
-      // metadata
-      var meta = find(body, '.entry-meta')
-      var date = new Date(data.created_at)
-      meta.innerHTML = '<a href="http://twitter.com/' + user.screen_name + '/statuses/' + data.id +
-        '" class="entry-date" rel="bookmark"><span class="published" title="">' +
-        date.getHours() + ':' + date.getMinutes() + '</span></a> from ' + data.source
+      var isReply = data.in_reply_to_screen_name,
+        date = new Date(data.created_at),
+        username = data.user.screen_name,
+        preparedData = {
+          id: data.id, reply_class: isReply ? 'reply' : '',
+          username: username, avatar: data.user.profile_image_url, real_name: data.user.name,
+          created_at: date.toString(), created_ago: relativeTime(date) + ' ago',
+          text: linkify(data.text), source: data.source,
+          in_reply_to: data.in_reply_to_screen_name, in_reply_to_status: data.in_reply_to_status_id,
+          fav_action: data.favorited ? 'un-favorite' : 'favorite',
+          fav_class: data.favorited ? 'fav' : 'non-fav',
+        }
+          
+      // HTML markup for a single tweet
+      var updateHTML = ["<li id='status_#{id}' class='hentry status #{reply_class} u-#{username}'>\
+        <span class='thumb vcard author'><a class='url' href='/#{username}'>\
+          <img width='48' height='48' src='#{avatar}' class='photo fn' alt='#{real_name}'/>\
+        </a></span>\
+        <span class='status-body'>"]
+      if (data.user.protected) updateHTML.push("<img title='#{real_name}’s updates are protected— please don’t share!'\
+        src='http://assets2.twitter.com/images/icon_lock.gif' class='lock' alt='Icon_lock'/> ")
+      updateHTML.push("<strong><a title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
+        <span class='entry-content'>#{text}</span>\
+        <span class='meta entry-meta'>\
+          <a rel='bookmark' class='entry-date' href='/#{username}/status/#{id}'>\
+            <span title='#{created_at}' class='published'>#{created_ago}</span>\
+          </a>\
+          <span>from #{source}</span>")
+      if (data.in_reply_to_status_id) updateHTML.push(
+        " <a href='/#{in_reply_to}/status/#{in_reply_to_status}'>in reply to #{in_reply_to}</a>")
+      updateHTML.push("</span>\
+        </span>\
+        <span class='actions'><div>\
+          <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>\
+          <a title='reply to #{username}' class='repl'\
+            href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>\
+        </div></span>\
+      </li>")
       
-      // 'reply' icon
-      var replyLink = find(update, '.actions a.repl')
-      if (isCurrentUser) {
-        // prevent user from replying to himself
-        replyLink.parentNode.removeChild(replyLink)
-      } else {
-        updateStatusInAttribute(replyLink, 'title', user.screen_name)
-        replyLink.href = '/home?status=@' + user.screen_name + '&in_reply_to_status_id=' + data.id
-      }
-      // if we accidentally cloned a faved link, reset that icon
-      var favedLink = find(update, '.actions a.fav')
-      if (favedLink) {
-        removeClassName(favedLink, 'fav')
-        addClassName(favedLink, 'non-fav')
-        favedLink.title = favedLink.title.replace('un-', '')
-      }
+      updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
+        return preparedData[key]
+      })
       
     	// finally, insert the new tweet in the timeline ...
-      timeline.insertBefore(update, timeline.firstChild)
+      timeline.insertBefore(updateContainer.firstChild, timeline.firstChild)
       // ... and remove the oldest tweet from the timeline
       var oldestTweet = find(timeline, '> li[last()]')
       timeline.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
-      if (growls && !isCurrentUser) {
-        var title = user.screen_name + ' updated ' + relativeTime(date) + ' ago'
-        var description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      if (growls && username != currentUser) {
+        var title = username + ' updated ' + preparedData.created_ago,
+            description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         growls.push({
-          title: title, description: description, icon: thumbImg,
+          title: title, description: description, // icon: thumbImg,
           identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
         })
       }
-    }
-    
-    function updateStatusInAttribute(obj, prop, id) {
-      var replacement, initial = obj.getAttribute(prop)
-      if (typeof id == 'number') replacement = initial.replace(/([_\/])(\d{8,})\b/, '$1' + id)
-      else replacement = initial.replace(/[\w-]+$/, id)
-      obj.setAttribute(prop, replacement)
     }
     
     var debug = false // temp set to true for testing purposes
@@ -657,6 +638,10 @@ function relativeTime(date, relativeTo) {
   else if (delta < (24*60*60)) return 'about ' + Math.round(delta / 3600) + ' hours'
   else if (delta < (48*60*60)) return '1 day'
   else return Math.round(delta / 86400) + ' days'
+}
+
+function strip(string) {
+  return string.replace(/^\s+/, '').replace(/\s+$/, '')
 }
 
 // get a reference to the jQuery object, even if it requires
