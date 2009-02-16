@@ -115,6 +115,7 @@ if (timeline && !singleTweetPage) {
       var isReply = data.in_reply_to_screen_name,
         date = new Date(data.created_at),
         username = data.user.screen_name,
+        ownUpdate = username == currentUser,
         preparedData = {
           id: data.id, reply_class: isReply ? 'reply' : '',
           username: username, avatar: data.user.profile_image_url, real_name: data.user.name,
@@ -145,11 +146,11 @@ if (timeline && !singleTweetPage) {
       updateHTML.push("</span>\
         </span>\
         <span class='actions'><div>\
-          <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>\
-          <a title='reply to #{username}' class='repl'\
-            href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>\
-        </div></span>\
-      </li>")
+          <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>")
+      if (ownUpdate) updateHTML.push("<a title='delete this update' class='del'>&nbsp;&nbsp;</a>")
+      else updateHTML.push("<a title='reply to #{username}' class='repl'\
+        href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
+      updateHTML.push("</div></span></li>")
       
       updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
         return preparedData[key]
@@ -162,7 +163,7 @@ if (timeline && !singleTweetPage) {
       timeline.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
-      if (growls && username != currentUser) {
+      if (growls && !ownUpdate) {
         var title = username + ' updated ' + preparedData.created_ago,
             description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         growls.push({
