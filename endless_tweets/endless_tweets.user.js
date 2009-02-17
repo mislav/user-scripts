@@ -350,8 +350,7 @@ if (timeline && !singleTweetPage) {
     ")
 } else if (singleTweetPage) {
   addCSS("\
-    body#show #permalink:hover { background: none !important }\
-    body#show #content .actions input[type=image] { margin: 2px 0 0 2px }\
+    body#show .user-info { border-top: none }\
     ")
 }
 
