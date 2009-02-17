@@ -372,7 +372,7 @@ if (timeline && !singleTweetPage) {
           <div class='info'>\
             <textarea name='status' id='status' rows='2' cols='40'></textarea>\
             <div class='status-btn'>\
-              <input type='submit' class='status-btn round-btn disabled' id='update-submit' value='update' name='update'/>\
+              <input type='submit' class='status-btn round-btn disabled' id='update-submit' value='reply' name='update'/>\
             </div>\
           </div>\
         </fieldset>\
@@ -383,11 +383,12 @@ if (timeline && !singleTweetPage) {
           label = find(replyForm, 'label.doing'),
           textInput = $('status'),
           counter = $('status-field-char-counter'),
+          submitButton = $('update-submit'),
           submitDisabled = true,
           updateCounter = function(e) {
             counter.innerHTML = 140 - this.value.length
             if (e && submitDisabled) {
-              removeClassName($('update-submit'), 'disabled')
+              removeClassName(submitButton, 'disabled')
               submitDisabled = false
             }
           }
@@ -402,12 +403,30 @@ if (timeline && !singleTweetPage) {
       replyForm.addEventListener('submit', function(e) {
         e.preventDefault()
         if (!submitDisabled) {
-          var postBody = objectToQueryString({ status: textInput.value,
-            in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
-            in_reply_to: username,
-            authenticity_token: twttr.form_authenticity_token
+          addClassName(submitButton, 'disabled')
+          submitDisabled = true
+          // submit the reply to the server
+          twttr.loading()
+          xhr({
+            url: replyForm.getAttribute('action'), method: replyForm.getAttribute('method'),
+            data: objectToQueryString({
+              status: textInput.value,
+              in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
+              in_reply_to: username,
+              authenticity_token: twttr.form_authenticity_token
+            }),
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json, text/javascript, text/html',
+              'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            onerror: function(req) { log('ERROR ' + req.status) },
+            onload: function(req) {
+              log('reply to %s successfully sent', username)
+              twttr.loaded()
+              replyForm.parentNode.removeChild(replyForm)
+            }
           })
-          alert(postBody)
         }
       }, false)
       
