@@ -351,7 +351,50 @@ if (timeline && !singleTweetPage) {
 } else if (singleTweetPage) {
   addCSS("\
     body#show .user-info { border-top: none }\
+    #doingForm { max-width: 537px; }\
+    #doingForm #chars_left_notice { top: -4px !important; }\
     ")
+  
+  var replyLink = find($('content'), '.actions .repl')
+  if (replyLink) {
+    var replyHandler = function(e) {
+      var container = $E('div')
+      container.innerHTML = "<form method='post' id='doingForm' action='http://twitter.com/status/update'>\
+        <fieldset class='common-form standard-form'>\
+          <div class='bar'>\
+            <h3><label class='doing' for='status'>What are you doing?</label></h3>\
+            <span class='numeric' id='chars_left_notice'>\
+              <strong class='char-counter' id='status-field-char-counter'>140</strong>\
+            </span>\
+          </div>\
+          <div class='info'>\
+            <textarea name='status' id='status' rows='2' cols='40'></textarea>\
+            <div class='status-btn'>\
+              <input type='submit' class='status-btn round-btn disabled' id='update-submit' value='update' name='update'/>\
+            </div>\
+          </div>\
+        </fieldset>\
+      </form>"
+      
+      var username = selectString('meta[@name="page-user-screen_name"]/@content'),
+          replyForm = $('permalink').parentNode.appendChild(container.firstChild),
+          label = find(replyForm, 'label.doing'),
+          textInput = $('status'),
+          counter = $('status-field-char-counter'),
+          updateCounter = function(e) { counter.innerHTML = 140 - this.value.length }
+          
+      label.innerHTML = 'Reply to ' + username + ':'
+      textInput.value = '@' + username + ' '
+      textInput.focus()
+      textInput.selectionStart = textInput.selectionEnd = textInput.value.length
+      updateCounter.call(textInput)
+      textInput.addEventListener('keyup', updateCounter, false)
+      
+      e.preventDefault()
+      replyLink.removeEventListener('click', replyHandler, false)
+    }
+    replyLink.addEventListener('click', replyHandler, false)
+  }
 }
 
 // *** sorting of friends (sidebar) *** //
