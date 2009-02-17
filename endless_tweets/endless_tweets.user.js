@@ -298,7 +298,7 @@ if (timeline && !singleTweetPage) {
           url: nextPageLink.href,
           headers: { Accept: 'application/json' },
           onload: function(r) {
-            var json = window["eval"]("(" + r.responseText + ")")
+            var json = eval("(" + r.responseText + ")")
             if (!json) return
             
             var update, updates, list = $E('div'),
