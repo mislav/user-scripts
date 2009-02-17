@@ -296,16 +296,16 @@ if (timeline && !singleTweetPage) {
         xhr({
           method: 'GET',
           url: nextPageLink.href,
+          headers: { Accept: 'application/json' },
           onload: function(r) {
-            var update, updates,
-                match = r.responseText.match(/<ol[^>]*id="timeline"[^>]*>([\s\S]+?)<\/ol>/),
-                hasNextPage = /<a [^>]*rel="prev"/.test(r.responseText),
-                list = $E('ol')
+            var json = window["eval"]("(" + r.responseText + ")")
+            if (!json) return
             
-            if (!match) log(r.responseText)
+            var update, updates, list = $E('div'),
+                hasNextPage = /<a [^>]*rel="prev"/.test(json['#pagination'])
             
-            list.innerHTML = match[1]
-            updates = xpath2array(select('> li', list))
+            list.innerHTML = json['#timeline']
+            updates = xpath2array(select('.hentry', list))
             log("found %s updates", updates.length)
             match = null
             
@@ -617,10 +617,10 @@ if (typeof GM_xmlhttpRequest == "function") {
       }
     }
     
+    req.open(params.method, params.url, true)
     if (params.headers) for (name in params.headers)
       req.setRequestHeader(name, params.headers[name])
     
-    req.open(params.method, params.url, true)
     req.send(params.data)
   }
 }
