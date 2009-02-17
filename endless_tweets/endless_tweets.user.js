@@ -6,7 +6,9 @@
 // @include        https://twitter.com/*
 // ==/UserScript==
 
-(function(jQuery){
+var _realWindow = typeof jQuery == "undefined" ? unsafeWindow : window
+
+;(function(jQuery, twttr){
   
 if (typeof GM_getValue == "function") {
   var getValue = GM_getValue
@@ -381,7 +383,14 @@ if (timeline && !singleTweetPage) {
           label = find(replyForm, 'label.doing'),
           textInput = $('status'),
           counter = $('status-field-char-counter'),
-          updateCounter = function(e) { counter.innerHTML = 140 - this.value.length }
+          submitDisabled = true,
+          updateCounter = function(e) {
+            counter.innerHTML = 140 - this.value.length
+            if (e && submitDisabled) {
+              removeClassName($('update-submit'), 'disabled')
+              submitDisabled = false
+            }
+          }
           
       label.innerHTML = 'Reply to ' + username + ':'
       textInput.value = '@' + username + ' '
@@ -389,6 +398,18 @@ if (timeline && !singleTweetPage) {
       textInput.selectionStart = textInput.selectionEnd = textInput.value.length
       updateCounter.call(textInput)
       textInput.addEventListener('keyup', updateCounter, false)
+      
+      replyForm.addEventListener('submit', function(e) {
+        e.preventDefault()
+        if (!submitDisabled) {
+          var postBody = objectToQueryString({ status: textInput.value,
+            in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
+            in_reply_to: username,
+            authenticity_token: twttr.form_authenticity_token
+          })
+          alert(postBody)
+        }
+      }, false)
       
       e.preventDefault()
       replyLink.removeEventListener('click', replyHandler, false)
@@ -687,7 +708,17 @@ function strip(string) {
   return string.replace(/^\s+/, '').replace(/\s+$/, '')
 }
 
+function objectToQueryString(hash) {
+  var pairs = []
+  for (key in hash) {
+    var value = hash[key]
+    if (typeof value != 'undefined') pairs.push(encodeURIComponent(key) + '=' +
+      encodeURIComponent(value == null ? '' : String(value)))
+  }
+  return pairs.join('&')
+}
+
 // get a reference to the jQuery object, even if it requires
 // breaking out of the GreaseMonkey sandbox in Firefox
 // (we need to trust Twitter.com)
-})(typeof jQuery == "undefined" ? unsafeWindow.jQuery : jQuery)
+})(_realWindow.jQuery, _realWindow.twttr)
