@@ -734,6 +734,20 @@ function ajax(params) {
   return xhr(params)
 }
 
+function loadJSON(url, onload, params) {
+  params = extend({ url: url, onload: onload }, params)
+  var handler = params.onload
+  
+  params.onload = function(req) {
+    var responseType = req.getResponseHeader('Content-type').split(';')[0]
+    if (responseType == 'application/json' || responseType == 'text/javascript') {
+      var object = eval("(" + req.responseText + ")")
+      if (object) handler(object, req)
+    }
+  }
+  return ajax(params)
+}
+
 // stolen from twitter.com (hope you guys don't mind)
 function relativeTime(date, relativeTo) {
   if (!relativeTo) relativeTo = new Date
