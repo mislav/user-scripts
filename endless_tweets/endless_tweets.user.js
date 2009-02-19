@@ -697,6 +697,7 @@ if (typeof GM_xmlhttpRequest == "function") {
     var req = new XMLHttpRequest()
     
     req.onreadystatechange = function() {
+      if (params.onreadystatechange) params.onreadystatechange(req)
       if (req.readyState == 4) {
         if (req.status >= 200 && req.status < 400) if (params.onload) params.onload(req)
         else if (params.onerror) params.onerror(req)
@@ -708,6 +709,7 @@ if (typeof GM_xmlhttpRequest == "function") {
       req.setRequestHeader(name, params.headers[name])
     
     req.send(params.data)
+    return req
   }
 }
 
