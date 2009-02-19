@@ -60,10 +60,11 @@ if (typeof GM_getValue == "function") {
   }
 }
 
-var timeline  = $('timeline'),
-    home      = window.location.pathname == '/home',
+var timeline = $('timeline'),
+    currentUser = selectString('meta[@name="session-user-screen_name"]/@content')
     debugMode = getValue('debugMode', false),
-    singleTweetPage = !home && 'show' == document.body.id
+    home = 'home' == document.body.id,
+    singleTweetPage = 'show' == document.body.id
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0)
@@ -77,99 +78,31 @@ if (typeof GM_registerMenuCommand == "function") {
   })
 }
 
-if (timeline && !singleTweetPage) {
+if (timeline) {
   var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
       enablePreloading = true,
       loading = false,
       preloadingHandler = null
   
   if (home) {
-    var updateContainer = $E('ol'),
-        polling = getValue('polling', false),
-        currentUser = strip($('me_name').textContent),
+    var polling = getValue('polling', false),
         growls = window.fluid ? [] : null
     
-    function countOccurences(string, pattern) {
-      return string.split(pattern).length - 1
-    }
-    
-    var brackets = { ']': '[', ')': '(', '}': '{' }
-    
-    function linkify(text) {
-      var linked = text.replace(/\b(https?:\/\/|www\.)[^\s]+/g, function(href) {
-        // check for punctuation character at the end
-        var punct = '', match = href.match(/[^\w\/-]$/)
-        if (match) {
-          var punct = match[0], opening = brackets[punct]
-          // ignore closing bracket if it should be part of the URL (think Wikipedia links)
-          if (opening && countOccurences(href, opening) == countOccurences(href, punct)) punct = ''
-          // in other cases, last punctuation character should not be a part of the URL
-          else href = href.slice(0, -1)
-        }
-        
-        var fullHref = (href.indexOf('http') == 0) ? href : 'http://' + href
-        return '<a href="' + fullHref + '">' + href + '</a>' + punct
-      })
-      return linked.replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
-    }
-    
     function deliverUpdate(data) {
-      var isReply = data.in_reply_to_screen_name,
-        date = new Date(data.created_at),
-        username = data.user.screen_name,
-        ownUpdate = username == currentUser,
-        preparedData = {
-          id: data.id, reply_class: isReply ? 'reply' : '',
-          username: username, avatar: data.user.profile_image_url, real_name: data.user.name,
-          created_at: date.toString(), created_ago: relativeTime(date) + ' ago',
-          text: linkify(data.text), source: data.source,
-          in_reply_to: data.in_reply_to_screen_name, in_reply_to_status: data.in_reply_to_status_id,
-          fav_action: data.favorited ? 'un-favorite' : 'favorite',
-          fav_class: data.favorited ? 'fav' : 'non-fav',
-        }
-          
-      // HTML markup for a single tweet
-      var updateHTML = ["<li id='status_#{id}' class='hentry status #{reply_class} u-#{username}'>\
-        <span class='thumb vcard author'><a class='url' href='/#{username}'>\
-          <img width='48' height='48' src='#{avatar}' class='photo fn' alt='#{real_name}'/>\
-        </a></span>\
-        <span class='status-body'>"]
-      if (data.user.protected) updateHTML.push("<img title='#{real_name}’s updates are protected— please don’t share!'\
-        src='http://assets2.twitter.com/images/icon_lock.gif' class='lock' alt='Icon_lock'/> ")
-      updateHTML.push("<strong><a title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
-        <span class='entry-content'>#{text}</span>\
-        <span class='meta entry-meta'>\
-          <a rel='bookmark' class='entry-date' href='/#{username}/status/#{id}'>\
-            <span title='#{created_at}' class='published'>#{created_ago}</span>\
-          </a>\
-          <span>from #{source}</span>")
-      if (data.in_reply_to_status_id) updateHTML.push(
-        " <a href='/#{in_reply_to}/status/#{in_reply_to_status}'>in reply to #{in_reply_to}</a>")
-      updateHTML.push("</span>\
-        </span>\
-        <span class='actions'><div>\
-          <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>")
-      if (ownUpdate) updateHTML.push("<a title='delete this update' class='del'>&nbsp;&nbsp;</a>")
-      else updateHTML.push("<a title='reply to #{username}' class='repl'\
-        href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
-      updateHTML.push("</div></span></li>")
-      
-      updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
-        return preparedData[key]
-      })
+      var update = buildUpdateFromJSON(data)
       
     	// finally, insert the new tweet in the timeline ...
-      timeline.insertBefore(updateContainer.firstChild, timeline.firstChild)
+      timeline.insertBefore(update, timeline.firstChild)
       // ... and remove the oldest tweet from the timeline
       var oldestTweet = find(timeline, '> li[last()]')
       timeline.removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
-      if (growls && !ownUpdate) {
-        var title = username + ' updated ' + preparedData.created_ago,
+      if (growls && data.user.screen_name != currentUser) {
+        var title = data.user.screen_name + ' updated ' + find(update, '.entry-date').textContent,
             description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         growls.push({
-          title: title, description: description, // icon: thumbImg,
+          title: title, description: description, icon: find(update, '.author img'),
           identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
         })
       }
@@ -436,6 +369,56 @@ if (timeline && !singleTweetPage) {
     replyLink.addEventListener('click', replyHandler, false)
   }
 }
+
+// *** JSON to HTML markup for a single update *** //
+
+var buildUpdateFromJSON = (function() {
+  var updateContainer = $E('ol')
+  
+  return function(data) {
+    var isReply = data.in_reply_to_screen_name,
+      date = new Date(data.created_at),
+      preparedData = {
+        id: data.id, reply_class: isReply ? 'reply' : '',
+        username: data.user.screen_name, avatar: data.user.profile_image_url, real_name: data.user.name,
+        created_at: date.toString(), created_ago: relativeTime(date) + ' ago',
+        text: twitterLinkify(data.text), source: data.source,
+        in_reply_to: data.in_reply_to_screen_name, in_reply_to_status: data.in_reply_to_status_id,
+        fav_action: data.favorited ? 'un-favorite' : 'favorite',
+        fav_class: data.favorited ? 'fav' : 'non-fav',
+      }
+
+    var updateHTML = ["<li id='status_#{id}' class='hentry status #{reply_class} u-#{username}'>\
+      <span class='thumb vcard author'><a class='url' href='/#{username}'>\
+        <img width='48' height='48' src='#{avatar}' class='photo fn' alt='#{real_name}'/>\
+      </a></span>\
+      <span class='status-body'>"]
+    if (data.user.protected) updateHTML.push("<img title='#{real_name}’s updates are protected— please don’t share!'\
+      src='http://assets2.twitter.com/images/icon_lock.gif' class='lock' alt='Icon_lock'/> ")
+    updateHTML.push("<strong><a title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
+      <span class='entry-content'>#{text}</span>\
+      <span class='meta entry-meta'>\
+        <a rel='bookmark' class='entry-date' href='/#{username}/status/#{id}'>\
+          <span title='#{created_at}' class='published'>#{created_ago}</span>\
+        </a>\
+        <span>from #{source}</span>")
+    if (data.in_reply_to_status_id) updateHTML.push(
+      " <a href='/#{in_reply_to}/status/#{in_reply_to_status}'>in reply to #{in_reply_to}</a>")
+    updateHTML.push("</span>\
+      </span>\
+      <span class='actions'><div>\
+        <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>")
+    if (preparedData.username == currentUser) updateHTML.push("<a title='delete this update' class='del'>&nbsp;&nbsp;</a>")
+    else updateHTML.push("<a title='reply to #{username}' class='repl'\
+      href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
+    updateHTML.push("</div></span></li>")
+
+    updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
+      return preparedData[key]
+    })
+    return updateContainer.firstChild
+  }
+})()
 
 // *** sorting of friends (sidebar) *** //
 
@@ -735,6 +718,33 @@ function objectToQueryString(hash) {
       encodeURIComponent(value == null ? '' : String(value)))
   }
   return pairs.join('&')
+}
+
+function countOccurences(string, pattern) {
+  return string.split(pattern).length - 1
+}
+
+var bracketMap = { ']': '[', ')': '(', '}': '{' }
+
+function linkify(text) {
+  return text.replace(/\b(https?:\/\/|www\.)[^\s]+/g, function(href) {
+    // check for punctuation character at the end
+    var punct = '', match = href.match(/[^\w\/-]$/)
+    if (match) {
+      var punct = match[0], opening = bracketMap[punct]
+      // ignore closing bracket if it should be part of the URL (think Wikipedia links)
+      if (opening && countOccurences(href, opening) == countOccurences(href, punct)) punct = ''
+      // in other cases, last punctuation character should not be a part of the URL
+      else href = href.slice(0, -1)
+    }
+    
+    var fullHref = (href.indexOf('http') == 0) ? href : 'http://' + href
+    return '<a href="' + fullHref + '">' + href + '</a>' + punct
+  })
+}
+
+function twitterLinkify(text) {
+  return linkify(text).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
 }
 
 // get a reference to the jQuery object, even if it requires
