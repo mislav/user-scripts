@@ -342,16 +342,23 @@ if (timeline) {
           loadJSON(replyForm.getAttribute('action'), function(response) {
             twttr.loaded()
             removeChild(replyForm)
-            var miniTimeline = buildUpdateFromJSON(response).parentNode
-            $('permalink').parentNode.appendChild(miniTimeline)
+            // twitter can return the full HTML for the status
+            if (response.status_li) {
+              var miniTimeline = $E('ol', response.status_li)
+            } else {
+              var miniTimeline = buildUpdateFromJSON(response).parentNode
+            }
+            insertAfter(miniTimeline, $('permalink'))
           }, {
             method: replyForm.getAttribute('method'),
             data: {
               status: textInput.value,
               in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
               in_reply_to: username,
-              authenticity_token: twttr.form_authenticity_token
-            }
+              authenticity_token: twttr.form_authenticity_token,
+              tab: 'home'
+            },
+            headers: { Origin: 'http://twitter.com' }
           })
         }
       }, false)
