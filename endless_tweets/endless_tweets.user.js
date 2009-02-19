@@ -72,6 +72,10 @@ if (home) {
   var oldLastRead   = lastReadTweet
 }
 
+function livequeryRun() {
+  jQuery.livequery && jQuery.livequery.run()
+}
+
 if (typeof GM_registerMenuCommand == "function") {
   GM_registerMenuCommand('Endless Tweets debug mode', function() {
     setValue('debugMode', (debugMode = !debugMode))
@@ -144,7 +148,7 @@ if (timeline) {
         }
         if (count) {
           setValue('lastReadTweet', (lastReadTweet = data.id))
-          jQuery.livequery.run()
+          livequeryRun()
         }
       })
     }
@@ -241,7 +245,7 @@ if (timeline) {
             }
           })
           
-          jQuery.livequery.run()
+          livequeryRun()
           updates, list = null
 
           if (hasNextPage) {
@@ -370,10 +374,14 @@ if (content) content.addEventListener('click', function(e) {
     var statusID = link.href.match(/\d+/)[0]
     twttr.loading()
     loadJSON('/statuses/show/' + statusID + '.json', function(response) {
-      var currentStatus = up(link, '.status', content)
-      insertAfter(buildUpdateFromJSON(response), currentStatus)
+      var update = buildUpdateFromJSON(response)
+      if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
+      else {
+        var currentStatus = up(link, '.status', content)
+        insertAfter(update, currentStatus)
+      }
       twttr.loaded()
-      jQuery.livequery.run()
+      livequeryRun()
     })
     e.preventDefault()
   }
