@@ -534,11 +534,9 @@ function down(node) {
   return child
 }
 
-function up(node, selector) {
-  do {
-    node = node.parentNode
-  } while (node && !matchesCss(node, selector))
-  return node
+function up(node, selector, stopNode) {
+  for (; node && (!stopNode || node != stopNode); node = node.parentNode)
+    if (matchesCss(node, selector)) return node
 }
 
 function matchesCss(node, selector) {
