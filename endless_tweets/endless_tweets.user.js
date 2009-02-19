@@ -117,39 +117,34 @@ if (timeline) {
       else
         var url = 'http://twitter.com/statuses/friends_timeline.json?since_id=' + lastReadTweet
       
-      xhr({
-        url: url,
-        method: 'get',
-        onerror: function(req) { log('ERROR ' + req.status) },
-        onload: function(req) {
-          var data, updates = eval("(" + req.responseText + ")"), count = 0
-          for (var i = updates.length - 1; i >= 0; i--) {
-            data = updates[i]
-            // only show the update if an element with that status ID is not already present
-            if (debug || !$('status_' + data.id)) {
-              deliverUpdate(data)
-              count++
+      loadJSON(url, function(updates) {
+        var data, count = 0
+        for (var i = updates.length - 1; i >= 0; i--) {
+          data = updates[i]
+          // only show the update if an element with that status ID is not already present
+          if (debug || !$('status_' + data.id)) {
+            deliverUpdate(data)
+            count++
+          }
+        }
+        if (growls) {
+          var limit = growls.length - 4
+          for (var i = growls.length - 1; i >= 0; i--) {
+            if (i < limit) {
+              window.fluid.showGrowlNotification({
+                title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
+                description: '',
+                onclick: function() { window.fluid.activate() }
+              })
+              break
             }
+            window.fluid.showGrowlNotification(growls[i])
           }
-          if (growls) {
-            var limit = growls.length - 4
-            for (var i = growls.length - 1; i >= 0; i--) {
-              if (i < limit) {
-                window.fluid.showGrowlNotification({
-                  title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
-                  description: '',
-                  onclick: function() { window.fluid.activate() }
-                })
-                break
-              }
-              window.fluid.showGrowlNotification(growls[i])
-            }
-            growls = []
-          }
-          if (count) {
-            setValue('lastReadTweet', (lastReadTweet = data.id))
-            jQuery.livequery.run()
-          }
+          growls = []
+        }
+        if (count) {
+          setValue('lastReadTweet', (lastReadTweet = data.id))
+          jQuery.livequery.run()
         }
       })
     }
@@ -229,44 +224,36 @@ if (timeline) {
         log('nearing the end of page; loading page %s', pageNumber)
         
         // get the next page!
-        xhr({
-          method: 'GET',
-          url: nextPageLink.href,
-          headers: { Accept: 'application/json' },
-          onload: function(r) {
-            var json = eval("(" + r.responseText + ")")
-            if (!json) return
-            
-            var updates, list = $E('div'),
-                hasNextPage = /<a [^>]*rel="prev"/.test(json['#pagination'])
-            
-            list.innerHTML = json['#timeline']
-            updates = xpath2array(select('.hentry', list))
-            log("found %s updates", updates.length)
-            match = null
-            
-            updates.forEach(function(update) {
-              // don't insert tweets already present in the document
-              if (!$(update.id)) {
-                timeline.appendChild(update)
-                processTweet(update)
-              }
-            })
-            
-            jQuery.livequery.run()
-            updates, list = null
-
-            if (hasNextPage) {
-              // bump the page number on next page link
-              nextPageLink.href = nextURL + (++pageNumber)
-              log("next page is now at %s", nextPageLink.href)
-            } else {
-              stopPreloading("This person has no more updates.")
-              removeChild(nextPageLink)
+        loadJSON(nextPageLink.href, function(response) {
+          var updates, list = $E('div'),
+              hasNextPage = /<a [^>]*rel="prev"/.test(response['#pagination'])
+          
+          list.innerHTML = response['#timeline']
+          updates = xpath2array(select('.hentry', list))
+          log("found %s updates", updates.length)
+          match = null
+          
+          updates.forEach(function(update) {
+            // don't insert tweets already present in the document
+            if (!$(update.id)) {
+              timeline.appendChild(update)
+              processTweet(update)
             }
+          })
+          
+          jQuery.livequery.run()
+          updates, list = null
 
-            loading = false
+          if (hasNextPage) {
+            // bump the page number on next page link
+            nextPageLink.href = nextURL + (++pageNumber)
+            log("next page is now at %s", nextPageLink.href)
+          } else {
+            stopPreloading("This person has no more updates.")
+            removeChild(nextPageLink)
           }
+
+          loading = false
         })
       }
     }, false)
@@ -348,27 +335,18 @@ if (timeline) {
           submitDisabled = true
           // submit the reply to the server
           twttr.loading()
-          xhr({
-            url: replyForm.getAttribute('action'), method: replyForm.getAttribute('method'),
-            data: objectToQueryString({
+          loadJSON(replyForm.getAttribute('action'), function(response) {
+            twttr.loaded()
+            removeChild(replyForm)
+            var miniTimeline = buildUpdateFromJSON(response).parentNode
+            $('permalink').parentNode.appendChild(miniTimeline)
+          }, {
+            method: replyForm.getAttribute('method'),
+            data: {
               status: textInput.value,
               in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
               in_reply_to: username,
               authenticity_token: twttr.form_authenticity_token
-            }),
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-              'Accept': 'application/json, text/javascript, text/html',
-              'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            },
-            onerror: function(req) { log('ERROR ' + req.status) },
-            onload: function(req) {
-              twttr.loaded()
-              removeChild(replyForm)
-
-              var replyJSON = eval("(" + req.responseText + ")")
-              var miniTimeline = buildUpdateFromJSON(replyJSON).parentNode
-              $('permalink').parentNode.appendChild(miniTimeline)
             }
           })
         }
