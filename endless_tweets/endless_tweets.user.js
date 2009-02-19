@@ -713,6 +713,27 @@ if (typeof GM_xmlhttpRequest == "function") {
   }
 }
 
+function ajax(params) {
+  var defaults = {
+    method: 'GET',
+    onerror: function(req) { log('ERROR ' + req.status) }
+  }
+  var defaultHeaders = {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json, text/javascript, text/html, */*'
+  }
+      
+  params = extend(defaults, params)
+  params.headers = extend(defaultHeaders, params.headers || {})
+  
+  if (typeof params.data == 'object') {
+    params.data = objectToQueryString(params.data)
+    params.headers['Content-type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+  }
+  
+  return xhr(params)
+}
+
 // stolen from twitter.com (hope you guys don't mind)
 function relativeTime(date, relativeTo) {
   if (!relativeTo) relativeTo = new Date
@@ -768,6 +789,11 @@ function linkify(text) {
 
 function twitterLinkify(text) {
   return linkify(text).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+}
+
+function extend(destination, source) {
+  for (var property in source) destination[property] = source[property]
+  return destination
 }
 
 // get a reference to the jQuery object, even if it requires
