@@ -359,6 +359,26 @@ if (timeline) {
   }
 }
 
+if ('profile' == currentPage) addCSS("\
+  body#profile ol.statuses .thumb + span.status-body { margin-left: 55px; min-height: 50px; }\
+  ")
+
+var content = $('content')
+if (content) content.addEventListener('click', function(e) {
+  var link = up(e.target, 'a', this)
+  if (link && /^\s*in reply to /.test(link.textContent)) {
+    var statusID = link.href.match(/\d+/)[0]
+    twttr.loading()
+    loadJSON('/statuses/show/' + statusID + '.json', function(response) {
+      var currentStatus = up(link, '.status', content)
+      insertAfter(buildUpdateFromJSON(response), currentStatus)
+      twttr.loaded()
+      jQuery.livequery.run()
+    })
+    e.preventDefault()
+  }
+}, false)
+
 // *** JSON to HTML markup for a single update *** //
 
 var buildUpdateFromJSON = (function() {
