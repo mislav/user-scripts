@@ -99,7 +99,7 @@ if (timeline) {
       
       // never send Growl notifications for own tweets
       if (growls && data.user.screen_name != currentUser) {
-        var title = data.user.screen_name + ' updated ' + find(update, '.entry-date').textContent,
+        var title = data.user.screen_name + ' updated ' + strip(find(update, '.entry-date').textContent),
             description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         growls.push({
           title: title, description: description, icon: find(update, '.author img'),
