@@ -121,7 +121,7 @@ if (timeline) {
         method: 'get',
         onerror: function(req) { log('ERROR ' + req.status) },
         onload: function(req) {
-          var data, updates = eval(req.responseText), count = 0
+          var data, updates = eval("(" + req.responseText + ")"), count = 0
           for (var i = updates.length - 1; i >= 0; i--) {
             data = updates[i]
             // only show the update if an element with that status ID is not already present
