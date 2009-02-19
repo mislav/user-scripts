@@ -236,7 +236,7 @@ if (timeline) {
             var json = eval("(" + r.responseText + ")")
             if (!json) return
             
-            var update, updates, list = $E('div'),
+            var updates, list = $E('div'),
                 hasNextPage = /<a [^>]*rel="prev"/.test(json['#pagination'])
             
             list.innerHTML = json['#timeline']
@@ -245,7 +245,7 @@ if (timeline) {
             match = null
             
             updates.forEach(function(update) {
-              // don't show tweets already present in the document
+              // don't insert tweets already present in the document
               if (!$(update.id)) {
                 timeline.appendChild(update)
                 processTweet(update)
@@ -253,7 +253,7 @@ if (timeline) {
             })
             
             jQuery.livequery.run()
-            update, updates, list = null
+            updates, list = null
 
             if (hasNextPage) {
               // bump the page number on next page link
