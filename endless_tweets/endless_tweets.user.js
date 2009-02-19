@@ -61,10 +61,11 @@ if (typeof GM_getValue == "function") {
 }
 
 var timeline = $('timeline'),
-    currentUser = selectString('meta[@name="session-user-screen_name"]/@content')
+    currentUser = selectString('meta[@name="session-user-screen_name"]/@content'),
+    currentPage = document.body.id,
     debugMode = getValue('debugMode', false),
-    home = 'home' == document.body.id,
-    singleTweetPage = 'show' == document.body.id
+    home = 'home' == currentPage,
+    singleTweetPage = 'show' == currentPage
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0)
