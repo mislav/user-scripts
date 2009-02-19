@@ -286,6 +286,13 @@ if (timeline) {
 } else if (singleTweetPage) {
   addCSS("\
     body#show .user-info { border-top: none }\
+    body#show ol.statuses .status-body { font-size: inherit; }\
+    body#show #content ol.statuses .entry-content {\
+      font-size: inherit; font-family: inherit; font-weight: normal;\
+      background: transparent; display: inline; line-height: 1.2em;\
+      }\
+    body#show ol.statuses .actions a { padding: 3px 8px; }\
+    body#show #content ol.statuses .meta { font-size: 0.8em; white-space: nowrap; }\
     #doingForm { max-width: 537px; }\
     #doingForm #chars_left_notice { top: -4px !important; }\
     ")
@@ -355,9 +362,12 @@ if (timeline) {
             },
             onerror: function(req) { log('ERROR ' + req.status) },
             onload: function(req) {
-              log('reply to %s successfully sent', username)
               twttr.loaded()
               replyForm.parentNode.removeChild(replyForm)
+
+              var replyJSON = eval("(" + req.responseText + ")")
+              var miniTimeline = buildUpdateFromJSON(replyJSON).parentNode
+              $('permalink').parentNode.appendChild(miniTimeline)
             }
           })
         }
@@ -373,7 +383,7 @@ if (timeline) {
 // *** JSON to HTML markup for a single update *** //
 
 var buildUpdateFromJSON = (function() {
-  var updateContainer = $E('ol')
+  var updateContainer = $E('ol', { 'class': 'statuses' })
   
   return function(data) {
     var isReply = data.in_reply_to_screen_name,
