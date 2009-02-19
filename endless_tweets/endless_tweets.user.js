@@ -93,10 +93,10 @@ if (timeline) {
       var update = buildUpdateFromJSON(data)
       
     	// finally, insert the new tweet in the timeline ...
-      timeline.insertBefore(update, timeline.firstChild)
+      insertTop(update, timeline)
       // ... and remove the oldest tweet from the timeline
       var oldestTweet = find(timeline, '> li[last()]')
-      timeline.removeChild(oldestTweet)
+      removeChild(oldestTweet)
       
       // never send Growl notifications for own tweets
       if (growls && data.user.screen_name != currentUser) {
@@ -197,7 +197,7 @@ if (timeline) {
     enablePreloading = false
     window.removeEventListener('scroll', preloadingHandler, false)
     var message = $E('p', { id: 'pagination-message' }, text)
-    timeline.parentNode.insertBefore(message, timeline.nextSibling)
+    insertAfter(message, timeline)
   }
 
   function processTweet(item) {
@@ -262,7 +262,7 @@ if (timeline) {
               log("next page is now at %s", nextPageLink.href)
             } else {
               stopPreloading("This person has no more updates.")
-              nextPageLink.parentNode.removeChild(nextPageLink)
+              removeChild(nextPageLink)
             }
 
             loading = false
@@ -364,7 +364,7 @@ if (timeline) {
             onerror: function(req) { log('ERROR ' + req.status) },
             onload: function(req) {
               twttr.loaded()
-              replyForm.parentNode.removeChild(replyForm)
+              removeChild(replyForm)
 
               var replyJSON = eval("(" + req.responseText + ")")
               var miniTimeline = buildUpdateFromJSON(replyJSON).parentNode
@@ -512,7 +512,7 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
     var notice = $E('div', { id: 'userscript_update' }, '“Endless Tweets” user script has updates. ');
     var install = $E('a', { 'href': scriptURL }, 'Get the upgrade');
     notice.appendChild(install);
-    wrapper.insertBefore(notice, wrapper.firstChild)
+    insertTop(notice, wrapper)
     
     addCSS("\
       #userscript_update { text-align: right; color: gray; }\
@@ -569,6 +569,18 @@ function removeClassName(element, className) {
   element.className = element.className.replace(
     new RegExp("(^|\\s+)" + className + "(\\s+|$)"), ' ')
   return element
+}
+
+function removeChild(element) {
+  return element.parentNode.removeChild(element)
+}
+
+function insertAfter(element, node) {
+  return node.parentNode.insertBefore(element, node.nextSibling)
+}
+
+function insertTop(element, node) {
+  return node.insertBefore(element, node.firstChild)
 }
 
 function $E(name, attributes, content) {
