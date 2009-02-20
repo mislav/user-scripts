@@ -382,24 +382,27 @@ if ('profile' == currentPage) addCSS("\
   ")
 
 var content = $('content')
-if (content) content.addEventListener('click', function(e) {
-  var link = up(e.target, 'a', this)
-  if (link && /^\s*in reply to /.test(link.textContent)) {
-    var statusID = link.href.match(/\d+/)[0]
-    twttr.loading()
-    loadJSON('/statuses/show/' + statusID + '.json', function(response) {
-      var update = buildUpdateFromJSON(response)
-      if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
-      else {
-        var currentStatus = up(link, '.status', content)
-        insertAfter(update, currentStatus)
-      }
-      twttr.loaded()
-      livequeryRun()
-    })
-    e.preventDefault()
-  }
-}, false)
+if (content) {
+  // catch click to "in reply to ..." links
+  content.addEventListener('click', function(e) {
+    var link = up(e.target, 'a', this)
+    if (link && /^\s*in reply to /.test(link.textContent)) {
+      var statusID = link.href.match(/\d+/)[0]
+      twttr.loading()
+      loadJSON('/statuses/show/' + statusID + '.json', function(response) {
+        var update = buildUpdateFromJSON(response)
+        if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
+        else {
+          var currentStatus = up(link, '.status', content)
+          insertAfter(update, currentStatus)
+        }
+        twttr.loaded()
+        livequeryRun()
+      })
+      e.preventDefault()
+    }
+  }, false)
+}
 
 // *** JSON to HTML markup for a single update *** //
 
