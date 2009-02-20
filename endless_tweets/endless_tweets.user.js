@@ -123,10 +123,8 @@ if (timeline) {
     var debug = false // temp set to true for testing purposes
     
     var checkUpdates = function() {
-      if (debug)
-        var url = 'http://twitter.com/statuses/friends_timeline.json?count=5'
-      else
-        var url = 'http://twitter.com/statuses/friends_timeline.json?since_id=' + lastReadTweet
+      var url = '/statuses/friends_timeline.json'
+      url += debug ? '?count=2' : '?since_id=' + lastReadTweet
       
       loadJSON(url, function(updates) {
         var data, count = 0
@@ -781,6 +779,10 @@ function ajax(params) {
       
   params = extend(defaults, params)
   params.headers = extend(defaultHeaders, params.headers || {})
+  
+  if (!/^https?[:]/.test(params.url)) {
+    params.url = window.location.protocol + '//' + window.location.host + params.url
+  }
   
   if (typeof params.data == 'object') {
     params.data = objectToQueryString(params.data)
