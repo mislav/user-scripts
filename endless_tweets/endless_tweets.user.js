@@ -402,6 +402,36 @@ if (content) {
       e.preventDefault()
     }
   }, false)
+  
+  // catch keypresses in the update form
+  content.addEventListener('keypress', function(e) {
+    var textarea = null
+    if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
+      if (textarea.selectionStart == textarea.selectionEnd) {
+        var beforeText = textarea.value.slice(0, textarea.selectionStart)
+        var match = beforeText.match(/@(\w+)$/)
+        if (match) {
+          var found = [], partial = match[1]
+          friendNames.forEach(function(friend) {
+            if (friend.indexOf(partial) === 0) {
+              found.push(friend)
+            }
+          })
+          if (found.length == 1) {
+            var fill = found[0].replace(partial, '')
+            var afterText = textarea.value.slice(textarea.selectionStart + 1, textarea.value.length)
+            if (afterText) {
+              textarea.value = beforeText + fill + ' ' + afterText
+              positionCursor(textarea, -afterText.length)
+            } else {
+              textarea.value += fill + ' '
+            }
+            e.preventDefault()
+          }
+        }
+      }
+    }
+  }, false)
 }
 
 // *** JSON to HTML markup for a single update *** //
@@ -456,7 +486,8 @@ var buildUpdateFromJSON = (function() {
 
 // *** sorting of friends (sidebar) *** //
 
-var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
+var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)),
+    friendNames = []
 
 function compare(a, b, filter) {
   if (filter) {
@@ -470,12 +501,14 @@ function compare(a, b, filter) {
 if (friends.length) {
   friends.sort(function(a, b) {
     return compare(a, b, function(vcard) {
-      return selectString('./a/@href', vcard).replace(/^\s+|\s+$/g, '').split('/')[3]
+      if (!vcard._name) vcard._name = selectString('./a/@href', vcard).replace(/^\s+|\s+$/g, '').split('/')[3]
+      return vcard._name
     })
   })
 
   friends.forEach(function(vcard) {
     vcard.parentNode.appendChild(vcard)
+    friendNames.push(vcard._name)
   })
 }
 
