@@ -709,29 +709,29 @@ if (typeof GM_xmlhttpRequest == "function") {
   var xhr = GM_xmlhttpRequest
 } else {
   var xhr = function(params) {
-    var req = new XMLHttpRequest()
+    var request = new XMLHttpRequest()
     
-    req.onreadystatechange = function() {
-      if (params.onreadystatechange) params.onreadystatechange(req)
-      if (req.readyState == 4) {
-        if (req.status >= 200 && req.status < 400) if (params.onload) params.onload(req)
-        else if (params.onerror) params.onerror(req)
+    request.onreadystatechange = function(response) {
+      if (params.onreadystatechange) params.onreadystatechange(response)
+      if (response.readyState == 4) {
+        if (response.status >= 200 && response.status < 400) if (params.onload) params.onload(response)
+        else if (params.onerror) params.onerror(response)
       }
     }
     
-    req.open(params.method, params.url, true)
+    request.open(params.method, params.url, true)
     if (params.headers) for (name in params.headers)
-      req.setRequestHeader(name, params.headers[name])
+      request.setRequestHeader(name, params.headers[name])
     
-    req.send(params.data)
-    return req
+    request.send(params.data)
+    return request
   }
 }
 
 function ajax(params) {
   var defaults = {
     method: 'GET',
-    onerror: function(req) { log('ERROR ' + req.status) }
+    onerror: function(response) { log('ERROR ' + response.status) }
   }
   var defaultHeaders = {
     'X-Requested-With': 'XMLHttpRequest',
