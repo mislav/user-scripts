@@ -65,11 +65,14 @@ var timeline = $('timeline'),
     currentPage = document.body.id,
     debugMode = getValue('debugMode', false),
     home = 'home' == currentPage,
-    singleTweetPage = 'show' == currentPage
+    singleTweetPage = 'show' == currentPage,
+    sourceString = 'Endless Tweets'
 
 if (home) {
-  var lastReadTweet = getValue('lastReadTweet', 0)
-  var oldLastRead   = lastReadTweet
+  var lastReadTweet = getValue('lastReadTweet', 0),
+      oldLastRead = lastReadTweet
+  
+  $('source').value = sourceString
 }
 
 function livequeryRun() {
@@ -355,7 +358,8 @@ if (timeline) {
               status: textInput.value,
               in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
               return_rendered_status: true, twttr: true,
-              authenticity_token: twttr.form_authenticity_token
+              authenticity_token: twttr.form_authenticity_token,
+              source: sourceString
             }
           })
         }
