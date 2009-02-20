@@ -79,6 +79,10 @@ function livequeryRun() {
   jQuery.livequery && jQuery.livequery.run()
 }
 
+function getTwitterSession() {
+  return (document.cookie.toString().match(/_twitter_sess=[^\s;]+/) || [])[0]
+}
+
 if (typeof GM_registerMenuCommand == "function") {
   GM_registerMenuCommand('Endless Tweets debug mode', function() {
     setValue('debugMode', (debugMode = !debugMode))
@@ -261,7 +265,7 @@ if (timeline) {
           }
 
           loading = false
-        })
+        }, { headers: { 'Cookie': getTwitterSession() } })
       }
     }, false)
   }
@@ -360,7 +364,8 @@ if (timeline) {
               return_rendered_status: true, twttr: true,
               authenticity_token: twttr.form_authenticity_token,
               source: sourceString
-            }
+            },
+            headers: { 'Cookie': getTwitterSession() }
           })
         }
       }, false)
