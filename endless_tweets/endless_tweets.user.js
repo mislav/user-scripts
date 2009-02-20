@@ -354,11 +354,9 @@ if (timeline) {
             data: {
               status: textInput.value,
               in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
-              in_reply_to: username,
-              authenticity_token: twttr.form_authenticity_token,
-              tab: 'home'
-            },
-            headers: { Origin: 'http://twitter.com' }
+              return_rendered_status: true, twttr: true,
+              authenticity_token: twttr.form_authenticity_token
+            }
           })
         }
       }, false)
