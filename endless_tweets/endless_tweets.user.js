@@ -750,14 +750,20 @@ function ajax(params) {
 }
 
 function loadJSON(url, onload, params) {
-  params = extend({ url: url, onload: onload }, params)
+  params = extend({ url: url, onload: onload }, params || {})
   var handler = params.onload
   
-  params.onload = function(req) {
-    var responseType = req.getResponseHeader('Content-type').split(';')[0]
+  params.onload = function(response) {
+    if (typeof response.getResponseHeader == 'function') {
+      // native XMLHttpRequest interface
+      var responseType = (response.getResponseHeader('Content-type') || '').split(';')[0]
+    } else {
+      // GM_xmlhttpRequest interface
+      var responseType = (response.responseHeaders.match(/^Content-[Tt]ype:\s*([^\s;]+)/m) || [])[1]
+    }
     if (responseType == 'application/json' || responseType == 'text/javascript') {
-      var object = eval("(" + req.responseText + ")")
-      if (object) handler(object, req)
+      var object = eval("(" + response.responseText + ")")
+      if (object) handler(object, response)
     }
   }
   return ajax(params)
