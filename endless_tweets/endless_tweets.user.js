@@ -335,7 +335,7 @@ if (timeline) {
       label.innerHTML = 'Reply to ' + username + ':'
       textInput.value = '@' + username + ' '
       textInput.focus()
-      textInput.selectionStart = textInput.selectionEnd = textInput.value.length
+      cursorEnd(textInput)
       updateCounter.call(textInput)
       textInput.addEventListener('keyup', updateCounter, false)
       
@@ -834,6 +834,17 @@ function twitterLinkify(text) {
 function extend(destination, source) {
   for (var property in source) destination[property] = source[property]
   return destination
+}
+
+function cursorEnd(field) {
+  positionCursor(field, field.value.length)
+}
+
+function positionCursor(field, start, end) {
+  if (start < 0) start = field.value.length + start
+  if (!end) end = start
+  field.selectionStart = start
+  field.selectionEnd = end
 }
 
 // get a reference to the jQuery object, even if it requires
