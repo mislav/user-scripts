@@ -283,7 +283,8 @@ if (timeline) {
     ")
 } else if (singleTweetPage) {
   addCSS("\
-    body#show .user-info { border-top: none }\
+    body#show .user-info { border-top-color: white }\
+    body#show .actions { top: 2px }\
     body#show ol.statuses .status-body { font-size: inherit; }\
     body#show #content ol.statuses .entry-content {\
       font-size: inherit; font-family: inherit; font-weight: normal;\
