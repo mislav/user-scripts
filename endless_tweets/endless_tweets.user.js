@@ -352,7 +352,7 @@ if (timeline) {
             removeChild(replyForm)
             // twitter can return the full HTML for the status
             if (response.status_li) {
-              var miniTimeline = $E('ol', response.status_li)
+              var miniTimeline = $E('ol', { 'class': 'statuses' }, response.status_li)
             } else {
               var miniTimeline = buildUpdateFromJSON(response).parentNode
             }
