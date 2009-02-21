@@ -718,15 +718,17 @@ function css2xpath(css) {
   fragments.forEach(function(fragment) {
     if (!fragment) return;
     if (fragment == '>') child = true;
-    else if (/^([^.]*)\.([\w.-]+)$/.test(fragment)) {
+    else if (/^([^.]*)\.([\w.-]+)/.test(fragment)) {
       xpath.add(RegExp.$1)
       RegExp.$2.split('.').forEach(function(className) {
         xpath.push(xpathClass(className))
       })
+      if (RegExp["$'"]) xpath.push(RegExp["$'"])
     }
-    else if (/^([^.]*)#([\w-]+)$/.test(fragment)) {
+    else if (/^([^.]*)#([\w-]+)/.test(fragment)) {
       xpath.add(RegExp.$1)
       xpath.push('[@id="' + RegExp.$2 + '"]')
+      if (RegExp["$'"]) xpath.push(RegExp["$'"])
     }
     else xpath.add(fragment)
   })
