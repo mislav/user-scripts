@@ -390,15 +390,17 @@ if (content) {
       var statusID = link.href.match(/\d+/)[0]
       twttr.loading()
       loadJSON('/statuses/show/' + statusID + '.json', function(response) {
-        var update = buildUpdateFromJSON(response)
-        if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
-        else {
-          var currentStatus = up(link, '.status', content)
-          insertAfter(update, currentStatus)
-        }
-        reveal(update)
-        twttr.loaded()
-        livequeryRun()
+        onAvatarLoad(response, function() {
+          var update = buildUpdateFromJSON(response)
+          if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
+          else {
+            var currentStatus = up(link, '.status', content)
+            insertAfter(update, currentStatus)
+          }
+          reveal(update)
+          twttr.loaded()
+          livequeryRun()
+        })
       })
       e.preventDefault()
     }
@@ -501,6 +503,12 @@ var buildUpdateFromJSON = (function() {
     return updateContainer.firstChild
   }
 })()
+
+function onAvatarLoad(data, callback) {
+  var avatar = new Image()
+  avatar.addEventListener('load', callback, false)
+  avatar.src = data.user.profile_image_url
+}
 
 // *** sorting of friends (sidebar) *** //
 
