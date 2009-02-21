@@ -563,9 +563,29 @@ if (sidebar) {
     ")
 }
 
-if (wrapper && typeof GM_xmlhttpRequest == "function") {
+if (wrapper) checkUserscriptUpdate(scriptURL, 32537, function() {
+  var notice = $E('p', { id: 'userscript_update' },
+    '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
+  var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
+  notice.appendChild(install)
+  
+  var topAlert = $('top_alert')
+  if (!topAlert && home) topAlert = insertAfter($E('div', { id: 'top_alert' }), $('doingForm'))
+  if (topAlert) topAlert.appendChild(notice)
+  else insertTop(notice, wrapper)
+  
+  addCSS("\
+    #userscript_update { text-align: right; color: gray; padding: 0 }\
+    #top_alert #userscript_update { text-align: inherit; padding: 2px; margin-top: 2px }\
+    body#show #userscript_update { margin: -.6em 0 .6em 0; }\
+    #userscript_update a { text-decoration: underline }\
+    ")
+})
+
+function checkUserscriptUpdate(scriptURL, scriptLength, callback) {
+  if (typeof GM_xmlhttpRequest != "function") return
+  
   var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      scriptLength = 32537,
       updateAvailable = getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
@@ -581,7 +601,7 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
     var lastUpdate = getValue('updateTimestamp'),
         time = Math.floor(new Date().getTime() / 1000),
         performCheck = time > lastUpdate + 172800 // 2 days
-        
+
     if (lastUpdate && performCheck) {
       GM_xmlhttpRequest({
         method: 'HEAD',
@@ -592,31 +612,13 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
           validateScriptLength(Number(m[1]))
         }
       })
-      log('Performed check for script updates')
+      log('Performed check for userscript update (result: %s)', updateAvailable)
     }
-    
-    if (!lastUpdate || performCheck)
-      setValue('updateTimestamp', time)
+
+    if (!lastUpdate || performCheck) setValue('updateTimestamp', time)
   }
 
-  if (updateAvailable) {
-    var notice = $E('p', { id: 'userscript_update' },
-      '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
-    var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
-    notice.appendChild(install)
-    
-    var topAlert = $('top_alert')
-    if (!topAlert && home) topAlert = insertAfter($E('div', { id: 'top_alert' }), $('doingForm'))
-    if (topAlert) topAlert.appendChild(notice)
-    else insertTop(notice, wrapper)
-    
-    addCSS("\
-      #userscript_update { text-align: right; color: gray; padding: 0 }\
-      #top_alert #userscript_update { text-align: inherit; padding: 2px; margin-top: 2px }\
-      body#show #userscript_update { margin: -.6em 0 .6em 0; }\
-      #userscript_update a { text-decoration: underline }\
-      ")
-  }
+  if (updateAvailable) callback()
 }
 
 // ********* UTILITY FUNCTIONS ********* //
