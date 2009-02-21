@@ -543,11 +543,23 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 
 // *** update notification *** //
 
-var wrapper = find(null, '#content > .wrapper')
+var scriptURL = 'http://userscripts.org/scripts/show/24398',
+    sidebar = $('side'),
+    wrapper = find(null, '#content > .wrapper')
+    
+if (sidebar) {
+  var section = find(sidebar, '.section[last()]')
+  var scriptInfo = $E('div', { id: 'endless_tweets' }, ' v' + scriptVersion)
+  insertTop($E('a', { 'href': scriptURL }, 'Endless Tweets'), scriptInfo)
+  section.appendChild(scriptInfo)
+  
+  addCSS("\
+    #endless_tweets { margin-top: 1em; font-size: 1em; font-variant: small-caps; }\
+    ")
+}
 
 if (wrapper && typeof GM_xmlhttpRequest == "function") {
-  var scriptURL = 'http://userscripts.org/scripts/show/24398',
-      sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
+  var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
       scriptLength = 22706,
       updateAvailable = getValue('updateAvailable', false)
 
@@ -583,7 +595,8 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
   }
 
   if (updateAvailable) {
-    var notice = $E('p', { id: 'userscript_update' }, '“Endless Tweets” user script has updates. ')
+    var notice = $E('p', { id: 'userscript_update' },
+      '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
     var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
     notice.appendChild(install)
     
@@ -594,7 +607,7 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
     
     addCSS("\
       #userscript_update { text-align: right; color: gray; padding: 0 }\
-      #top_alert #userscript_update { text-align: inherit; }\
+      #top_alert #userscript_update { text-align: inherit; padding: 2px; margin-top: 2px }\
       body#show #userscript_update { margin: -.6em 0 .6em 0; }\
       #userscript_update a { text-decoration: underline }\
       ")
