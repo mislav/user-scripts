@@ -402,7 +402,7 @@ if (content) {
   }, false)
   
   // catch keypresses in the update form
-  content.addEventListener('keypress', function(e) {
+  content.addEventListener('keydown', function(e) {
     var textarea = null
     if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
       if (textarea.selectionStart == textarea.selectionEnd) {
