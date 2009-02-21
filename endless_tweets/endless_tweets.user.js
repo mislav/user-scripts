@@ -68,7 +68,7 @@ var timeline = $('timeline'),
     singleTweetPage = 'show' == currentPage,
     sourceString = 'endlesstweets',
     scriptVersion = '0.9.1',
-    scriptLength = 33482
+    scriptLength = 33507
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0),
