@@ -67,7 +67,8 @@ var timeline = $('timeline'),
     home = 'home' == currentPage,
     singleTweetPage = 'show' == currentPage,
     sourceString = 'endlesstweets',
-    scriptVersion = '0.9'
+    scriptVersion = '0.9.1',
+    scriptLength = 33482
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0),
@@ -583,7 +584,7 @@ if (sidebar) {
     ")
 }
 
-if (wrapper) checkUserscriptUpdate(scriptURL, 32537, function() {
+if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
   var notice = $E('p', { id: 'userscript_update' },
     '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
   var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
