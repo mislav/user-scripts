@@ -582,13 +582,18 @@ if (wrapper && typeof GM_xmlhttpRequest == "function") {
   }
 
   if (updateAvailable) {
-    var notice = $E('div', { id: 'userscript_update' }, '“Endless Tweets” user script has updates. ');
-    var install = $E('a', { 'href': scriptURL }, 'Get the upgrade');
-    notice.appendChild(install);
-    insertTop(notice, wrapper)
+    var notice = $E('p', { id: 'userscript_update' }, '“Endless Tweets” user script has updates. ')
+    var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
+    notice.appendChild(install)
+    
+    var topAlert = $('top_alert')
+    if (!topAlert && home) topAlert = insertAfter($E('div', { id: 'top_alert' }), $('doingForm'))
+    if (topAlert) topAlert.appendChild(notice)
+    else insertTop(notice, wrapper)
     
     addCSS("\
-      #userscript_update { text-align: right; color: gray; }\
+      #userscript_update { text-align: right; color: gray; padding: 0 }\
+      #top_alert #userscript_update { text-align: inherit; }\
       body#show #userscript_update { margin: -.6em 0 .6em 0; }\
       #userscript_update a { text-decoration: underline }\
       ")
