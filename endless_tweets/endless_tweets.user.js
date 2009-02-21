@@ -391,11 +391,15 @@ if (content) {
       twttr.loading()
       loadJSON('/statuses/show/' + statusID + '.json', function(response) {
         onAvatarLoad(response, function() {
-          var update = buildUpdateFromJSON(response)
-          if (singleTweetPage) insertAfter(update.parentNode, $('permalink'))
-          else {
-            var currentStatus = up(link, '.status', content)
+          var update = buildUpdateFromJSON(response),
+              currentStatus = up(link, '.status', content)
+              
+          if (currentStatus) {
+            // we're in a list of statuses
             insertAfter(update, currentStatus)
+          } else {
+            // we're on a fresh single tweet page
+            insertAfter(update.parentNode, $('permalink'))
           }
           reveal(update)
           twttr.loaded()
@@ -457,7 +461,13 @@ if (content) {
 // *** JSON to HTML markup for a single update *** //
 
 var buildUpdateFromJSON = (function() {
-  var updateContainer = $E('ol', { 'class': 'statuses' })
+  var updateContainer
+  
+  function prepareContainer() {
+    if (!updateContainer || updateContainer.parentNode)
+      updateContainer = $E('ol', { 'class': 'statuses' })
+    return updateContainer
+  }
   
   return function(data) {
     var isReply = data.in_reply_to_screen_name,
@@ -496,7 +506,8 @@ var buildUpdateFromJSON = (function() {
     else updateHTML.push("<a title='reply to #{username}' class='repl'\
       href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
     updateHTML.push("</div></span></li>")
-
+    
+    prepareContainer()
     updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
       return preparedData[key]
     })
