@@ -355,6 +355,7 @@ if (timeline) {
               var miniTimeline = buildUpdateFromJSON(response).parentNode
             }
             insertAfter(miniTimeline, $('permalink'))
+            reveal(miniTimeline.firstChild)
           }, {
             method: replyForm.getAttribute('method'),
             data: {
@@ -395,6 +396,7 @@ if (content) {
           var currentStatus = up(link, '.status', content)
           insertAfter(update, currentStatus)
         }
+        reveal(update)
         twttr.loaded()
         livequeryRun()
       })
@@ -924,6 +926,10 @@ function positionCursor(field, start, end) {
   if (!end) end = start
   field.selectionStart = start
   field.selectionEnd = end
+}
+
+function reveal(element) {
+  jQuery(element).hide().slideDown()
 }
 
 // get a reference to the jQuery object, even if it requires
