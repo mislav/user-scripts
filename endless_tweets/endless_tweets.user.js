@@ -561,7 +561,7 @@ if (sidebar) {
 
 if (wrapper && typeof GM_xmlhttpRequest == "function") {
   var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      scriptLength = 32477,
+      scriptLength = 32537,
       updateAvailable = getValue('updateAvailable', false)
 
   function validateScriptLength(length) {
