@@ -790,11 +790,11 @@ if (typeof GM_xmlhttpRequest == "function") {
   var xhr = function(params) {
     var request = new XMLHttpRequest()
     
-    request.onreadystatechange = function(response) {
-      if (params.onreadystatechange) params.onreadystatechange(response)
-      if (response.readyState == 4) {
-        if (response.status >= 200 && response.status < 400) if (params.onload) params.onload(response)
-        else if (params.onerror) params.onerror(response)
+    request.onreadystatechange = function() {
+      if (params.onreadystatechange) params.onreadystatechange(request)
+      if (request.readyState == 4) {
+        if (request.status >= 200 && request.status < 400) if (params.onload) params.onload(request)
+        else if (params.onerror) params.onerror(request)
       }
     }
     
