@@ -406,10 +406,28 @@ if (content) {
     var textarea = null
     if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
       if (textarea.selectionStart == textarea.selectionEnd) {
-        var beforeText = textarea.value.slice(0, textarea.selectionStart)
-        var match = beforeText.match(/@(\w+)$/)
-        if (match) {
+        var beforeText = textarea.value.slice(0, textarea.selectionStart),
+            afterText = textarea.value.slice(textarea.selectionStart + 1, textarea.value.length),
+            match = beforeText.match(/@(\w+)$/)
+            
+        if (match && (!afterText || afterText.indexOf(/\s/) === 0)) {
           var found = [], partial = match[1]
+          
+          if (timeline) {
+            forEach(select('.status-body > strong a/text()', timeline), function(name) {
+              name = name.nodeValue.toLowerCase()
+              if (friendNames.indexOf(name) < 0) friendNames.push(name)
+            })
+            forEach(select('.entry-content', timeline), function(body) {
+              var matches = body.textContent.match(/@(\w+)/g)
+              if (matches) matches.forEach(function(name) {
+                name = name.slice(1, name.length).toLowerCase()
+                if (friendNames.indexOf(name) < 0) friendNames.push(name)
+              })
+            })
+            friendNames = friendNames.sort()
+          }
+          
           friendNames.forEach(function(friend) {
             if (friend.indexOf(partial) === 0) {
               found.push(friend)
@@ -417,7 +435,6 @@ if (content) {
           })
           if (found.length == 1) {
             var fill = found[0].replace(partial, '')
-            var afterText = textarea.value.slice(textarea.selectionStart + 1, textarea.value.length)
             if (afterText) {
               textarea.value = beforeText + fill + ' ' + afterText
               positionCursor(textarea, -afterText.length)
@@ -491,7 +508,6 @@ function compare(a, b, filter) {
   if (filter) {
     a = filter(a); b = filter(b);
   }
-  a = a.toLowerCase(); b = b.toLowerCase();
   if (a == b) return 0;
   return a < b ? -1 : 1;
 }
@@ -499,14 +515,17 @@ function compare(a, b, filter) {
 if (friends.length) {
   friends.sort(function(a, b) {
     return compare(a, b, function(vcard) {
-      if (!vcard._name) vcard._name = selectString('./a/@href', vcard).replace(/^\s+|\s+$/g, '').split('/')[3]
-      return vcard._name
+      if (!vcard._name) {
+        vcard._name = selectString('./a/@href', vcard).replace(/^\s+|\s+$/g, '').split('/')[3]
+        vcard._nameDowncase = vcard._name.toLowerCase()
+      }
+      return vcard._nameDowncase
     })
   })
 
   friends.forEach(function(vcard) {
     vcard.parentNode.appendChild(vcard)
-    friendNames.push(vcard._name)
+    friendNames.push(vcard._nameDowncase)
   })
 }
 
