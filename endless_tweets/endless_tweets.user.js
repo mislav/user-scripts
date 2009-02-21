@@ -550,13 +550,15 @@ var scriptURL = 'http://userscripts.org/scripts/show/24398',
     wrapper = find(null, '#content > .wrapper')
     
 if (sidebar) {
-  var section = find(sidebar, '.section')
-  var scriptInfo = $E('div', { id: 'endless_tweets' }, ' v' + scriptVersion)
-  insertTop($E('a', { 'href': scriptURL }, 'Endless Tweets'), scriptInfo)
+  var section = $('feed') || find(sidebar, '.section')
+  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'powered by ')
+  scriptInfo.appendChild($E('a', { 'href': scriptURL }, 'Endless Tweets'))
+  scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
   section.appendChild(scriptInfo)
   
   addCSS("\
-    #endless_tweets { margin-top: 1em; font-size: 1em; font-variant: small-caps; text-align: center }\
+    #endless_tweets { margin-top: .6em; font-size: 11px; font-variant: small-caps; }\
+    #endless_tweets a { font-size: 12px; }\
     #side #profile.section { padding-bottom: 8px !important }\
     ")
 }
