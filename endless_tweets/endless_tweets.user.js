@@ -66,7 +66,8 @@ var timeline = $('timeline'),
     debugMode = getValue('debugMode', false),
     home = 'home' == currentPage,
     singleTweetPage = 'show' == currentPage,
-    sourceString = 'endlesstweets'
+    sourceString = 'endlesstweets',
+    scriptVersion = '0.9'
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0),
