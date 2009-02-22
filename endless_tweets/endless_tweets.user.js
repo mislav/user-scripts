@@ -285,7 +285,6 @@ if (timeline) {
 } else if (singleTweetPage) {
   addCSS("\
     body#show .user-info { border-top-color: white }\
-    body#show .actions { top: 2px }\
     body#show ol.statuses .status-body { font-size: inherit; }\
     body#show #content ol.statuses .entry-content {\
       font-size: inherit; font-family: inherit; font-weight: normal;\
@@ -297,7 +296,12 @@ if (timeline) {
     #doingForm #chars_left_notice { top: -4px !important; }\
     ")
   
-  var replyLink = find($('content'), '.actions .repl')
+  var actions = find('permalink', '.actions')
+  if (actions) {
+    actions.style.top = document.defaultView.getComputedStyle(actions, null).top
+  }
+  
+  var replyLink = find('content', '.actions .repl')
   if (replyLink) {
     var replyHandler = function(e) {
       var container = $E('div')
