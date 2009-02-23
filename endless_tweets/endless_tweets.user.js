@@ -584,7 +584,6 @@ if (sidebar) {
   addCSS("\
     #endless_tweets { margin-top: .6em; font-size: 11px; font-variant: small-caps; }\
     #endless_tweets a { font-size: 12px; }\
-    #side #profile.section { padding-bottom: 8px !important }\
     ")
 }
 
