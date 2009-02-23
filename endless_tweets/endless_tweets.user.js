@@ -464,6 +464,42 @@ if (content) {
   }, false)
 }
 
+function checkViewportWidth() {
+  if (document.body.clientWidth < 780) addClassName(document.body, 'mini')
+  else removeClassName(document.body, 'mini')
+}
+window.addEventListener('resize', checkViewportWidth, false)
+checkViewportWidth()
+
+addCSS("\
+  body.mini #side_base {\
+    -moz-border-radius: 0 !important; border-left: none !important; -webkit-border-radius: 0 !important;\
+    display: block;\ position: absolute; left: 0; top: 0;\
+    height: 40px; width: 423px; padding-left: 140px;\
+  }\
+  body.mini ul#tabMenu li { border: none; display: inline; width: auto; }\
+  body.mini #tabMenu a { display: block !important; float: left; font-size: 10px !important; padding: 9px 4px !important; }\
+  body.mini #side #tabMenu ~ *, body.mini #side #message_count, body.mini #side .about, body.mini #navigation, body.mini #footer { display: none }\
+  body.mini #side { margin-bottom: 0; padding-top: 5px; }\
+  body.mini #side #profile #me_name { display: none; }\
+  body.mini #side div.section { padding: 0; }\
+  body.mini #side div#profile.section { padding-bottom: 0; }\
+  body.mini #side .stats { clear: none; float: left; margin: 5px 7px; }\
+  body.mini #side .stats td:last-child, body.mini #side .stats a .label { display: none; }\
+  body.mini #side .stats td + td { border-right: none; padding-right: 0; }\
+  body.mini #side .user_icon { clear: none !important; float: left !important; width: 31px; position: static !important; }\
+  body.mini #content { padding-top: 40px; -moz-border-radius: 0 !important; -webkit-border-radius: 0 !important; }\
+  body.mini #container { width: 564px; padding: 0; }\
+  body.mini #container > .columns { margin-bottom: 0; }\
+  body.mini #container > .content-bubble-arrow { display: none; }\
+  body.mini #header { margin: 0 !important; }\
+  body.mini #header #logo { position: absolute; top: 0; left: 0; z-index: 1; }\
+  body.mini #header #logo img { margin-top: 0; padding: 5px 8px; }\
+  body.mini #loader { right: 5px; top: 5px; }\
+  body#show.mini #container { width: 564px; }\
+  body#show.mini #content { width: 534px; padding-top: 40px; }\
+  ")
+
 // *** JSON to HTML markup for a single update *** //
 
 var buildUpdateFromJSON = (function() {
