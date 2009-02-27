@@ -229,8 +229,14 @@ if (timeline) {
     var nextURL = nextPageLink.href.replace(/(\d+)$/, '')
     var pageNumber = Number(RegExp.$1)
     
+    function nearingBottom() {
+      var viewportBottom = window.scrollY + window.innerHeight,
+          nearNextPageLink = document.body.clientHeight - window.innerHeight/3
+      return viewportBottom >= nearNextPageLink
+    }
+    
     window.addEventListener('scroll', preloadingHandler = function(e) {
-      if (!loading && this.scrollY + this.innerHeight >= nextPageLink.offsetTop - this.innerHeight/3) {
+      if (!loading && nearingBottom()) {
         loading = true
         log('nearing the end of page; loading page %s', pageNumber)
         
