@@ -285,7 +285,8 @@ if (timeline) {
 } else if (singleTweetPage) {
   addCSS("\
     body#show .user-info { border-top-color: white }\
-    body#show ol.statuses .status-body { font-size: inherit; }\
+    body#show ol.statuses .status-body, body#show ol.statuses .screen-name { font-size: inherit; }\
+    body#show ol.statuses .status-body { padding-bottom: 0; }\
     body#show #content ol.statuses .entry-content {\
       font-size: inherit; font-family: inherit; font-weight: normal;\
       background: transparent; display: inline; line-height: 1.2em;\
@@ -537,7 +538,7 @@ var buildUpdateFromJSON = (function() {
       <span class='status-body'>"]
     if (data.user.protected) updateHTML.push("<img title='#{real_name}’s updates are protected— please don’t share!'\
       src='http://assets2.twitter.com/images/icon_lock.gif' class='lock' alt='Icon_lock'/> ")
-    updateHTML.push("<strong><a title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
+    updateHTML.push("<strong><a class='screen-name' title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
       <span class='entry-content'>#{text}</span>\
       <span class='meta entry-meta'>\
         <a rel='bookmark' class='entry-date' href='/#{username}/status/#{id}'>\
@@ -551,7 +552,7 @@ var buildUpdateFromJSON = (function() {
       <span class='actions'><div>\
         <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>")
     if (preparedData.username == currentUser) updateHTML.push("<a title='delete this update' class='del'>&nbsp;&nbsp;</a>")
-    else updateHTML.push("<a title='reply to #{username}' class='repl'\
+    else updateHTML.push("<a title='reply to #{username}' class='reply'\
       href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
     updateHTML.push("</div></span></li>")
     
