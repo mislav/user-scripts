@@ -303,6 +303,12 @@ if (timeline) {
   
   var replyLink = find('content', '.actions .repl')
   if (replyLink) {
+    removeClassName(replyLink, 'repl')
+    addClassName(replyLink, 'reply')
+  } else {
+    replyLink = find('content', '.actions .reply')
+  }
+  if (replyLink) {
     var replyHandler = function(e) {
       var container = $E('div')
       container.innerHTML = "<form method='post' id='doingForm' action='http://twitter.com/status/update'>\
@@ -515,7 +521,7 @@ var buildUpdateFromJSON = (function() {
     var isReply = data.in_reply_to_screen_name,
       date = new Date(data.created_at),
       preparedData = {
-        id: data.id, reply_class: isReply ? 'reply' : '',
+        id: data.id,
         username: data.user.screen_name, avatar: data.user.profile_image_url, real_name: data.user.name,
         created_at: date.toString(), created_ago: relativeTime(date) + ' ago',
         text: twitterLinkify(data.text), source: data.source,
@@ -524,7 +530,7 @@ var buildUpdateFromJSON = (function() {
         fav_class: data.favorited ? 'fav' : 'non-fav',
       }
 
-    var updateHTML = ["<li id='status_#{id}' class='hentry status #{reply_class} u-#{username}'>\
+    var updateHTML = ["<li id='status_#{id}' class='hentry status u-#{username}'>\
       <span class='thumb vcard author'><a class='url' href='/#{username}'>\
         <img width='48' height='48' src='#{avatar}' class='photo fn' alt='#{real_name}'/>\
       </a></span>\
