@@ -496,7 +496,7 @@ addCSS("\
   body.mini #side .stats td + td { border-right: none; padding-right: 0; }\
   body.mini #side .user_icon { clear: none !important; float: left !important; width: 31px; position: static !important; }\
   body.mini #content { padding-top: 40px; -moz-border-radius: 0 !important; -webkit-border-radius: 0 !important; }\
-  body.mini #container { width: 564px; padding: 0; }\
+  body.mini #container { width: 564px; padding: 0; margin: 0; }\
   body.mini #container > .columns { margin-bottom: 0; }\
   body.mini #container > .content-bubble-arrow { display: none; }\
   body.mini #header { margin: 0 !important; }\
