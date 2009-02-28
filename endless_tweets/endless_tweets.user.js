@@ -619,6 +619,54 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 
 // *** update notification *** //
 
+var checkUserscriptUpdate = (function(){
+  if (typeof GM_xmlhttpRequest != "function") return (function() {}) // no-op
+  
+  var update = {
+    get available() { return getValue('updateAvailable', false) },
+    set available(value) { setValue('updateAvailable', value) },
+    get scriptLength() { return getValue('scriptLength') },
+    set scriptLength(value) { setValue('scriptLength', value) },
+    get checkedAt() { return getValue('updateTimestamp') },
+    set checkedAt(value) { setValue('updateTimestamp', value) },
+    interval: 172800 // 2 days
+  }
+  
+  // detect user has updated script
+  if (update.scriptLength != scriptLength) {
+    update.available = false
+    update.scriptLength = scriptLength
+  }
+  
+  function validateScriptLength(length, scriptLength) {
+    update.available = scriptLength != length
+  }
+  
+  return function(scriptURL, scriptLength, callback) {
+    var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js')
+
+    if (!update.available) {
+      var time = Math.floor(new Date().getTime() / 1000),
+          performCheck = time > update.checkedAt + update.interval
+
+      if (update.checkedAt && performCheck) {
+        GM_xmlhttpRequest({
+          url: sourceURL, method: 'HEAD',
+          headers: { 'Accept-Encoding': '' }, // no gzip, k thx bai
+          onload: function(r) {
+            var match = r.responseHeaders.match(/Content-Length: (\d+)/)
+            if (match) validateScriptLength(Number(match[1]), scriptLength)
+            log('Performed check for userscript update (result: %s)', update.available)
+          }
+        })
+      }
+      if (!update.checkedAt || performCheck) update.checkedAt = time
+    }
+
+    if (update.available) callback()
+  }
+})()
+
 var scriptURL = 'http://userscripts.org/scripts/show/24398',
     sidebar = $('side'),
     wrapper = find(null, '#content > .wrapper')
@@ -654,45 +702,6 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
     #userscript_update a { text-decoration: underline }\
     ")
 })
-
-function checkUserscriptUpdate(scriptURL, scriptLength, callback) {
-  if (typeof GM_xmlhttpRequest != "function") return
-  
-  var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js'),
-      updateAvailable = getValue('updateAvailable', false)
-
-  function validateScriptLength(length) {
-    if (updateAvailable = scriptLength != length)
-      setValue('updateAvailable', length)
-    else
-      setValue('updateAvailable', updateAvailable)
-  }
-
-  if (typeof updateAvailable == 'number') validateScriptLength(updateAvailable)
-
-  if (!updateAvailable) {
-    var lastUpdate = getValue('updateTimestamp'),
-        time = Math.floor(new Date().getTime() / 1000),
-        performCheck = time > lastUpdate + 172800 // 2 days
-
-    if (lastUpdate && performCheck) {
-      GM_xmlhttpRequest({
-        method: 'HEAD',
-        url: sourceURL,
-        headers: { 'Accept-Encoding': '' }, // no gzip, k thx bai
-        onload: function(r) {
-          var m = r.responseHeaders.match(/Content-Length: (\d+)/)
-          validateScriptLength(Number(m[1]))
-        }
-      })
-      log('Performed check for userscript update (result: %s)', updateAvailable)
-    }
-
-    if (!lastUpdate || performCheck) setValue('updateTimestamp', time)
-  }
-
-  if (updateAvailable) callback()
-}
 
 // ********* UTILITY FUNCTIONS ********* //
   
