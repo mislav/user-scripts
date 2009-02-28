@@ -102,6 +102,21 @@ if (timeline) {
     var polling = getValue('polling', false),
         growls = window.fluid ? [] : null
     
+    function updateTimestamps() {
+      var now = new Date()
+      
+      forEach(select('.meta .published'), function(span) {
+        var time, title = span.getAttribute('title')
+        if (title) {
+          time = new Date(title)
+          span.innerHTML = Time.agoInWords(time, now) + ' ago'
+        } else {
+          time = Time.agoToDate(strip(span.textContent), now)
+          span.setAttribute('title', time.toString())
+        }
+      })
+    }
+    
     function deliverUpdate(data) {
       var update = buildUpdateFromJSON(data)
       
@@ -158,6 +173,8 @@ if (timeline) {
           livequeryRun()
         }
       })
+      
+      updateTimestamps()
     }
     
     var pollInterval = null
