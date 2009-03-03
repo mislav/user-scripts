@@ -423,7 +423,7 @@ if (content) {
   content.addEventListener('click', function(e) {
     var link = up(e.target, 'a', this)
     if (link && /^\s*in reply to /.test(link.textContent)) {
-      var statusID = link.href.match(/\d+/)[0]
+      var statusID = link.href.match(/(\d+)$/)[1]
       twttr.loading()
       loadJSON('/statuses/show/' + statusID + '.json', function(response) {
         onAvatarLoad(response, function() {
