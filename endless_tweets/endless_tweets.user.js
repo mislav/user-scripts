@@ -1010,7 +1010,7 @@ var bracketMap = { ']': '[', ')': '(', '}': '{' }
 function linkify(text) {
   return text.replace(/\b(https?:\/\/|www\.)[^\s]+/g, function(href) {
     // check for punctuation character at the end
-    var punct = '', match = href.match(/[^\w\/-]$/)
+    var punct = '', match = href.match(/[.,;:!?\[\](){}"']$/)
     if (match) {
       var punct = match[0], opening = bracketMap[punct]
       // ignore closing bracket if it should be part of the URL (think Wikipedia links)
