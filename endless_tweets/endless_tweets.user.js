@@ -93,7 +93,7 @@ if (typeof GM_registerMenuCommand == "function") {
 }
 
 if (timeline) {
-  var nextPageLink = find('content', "div.pagination a[@rel='prev']"),
+  var nextPageLink = find('content', "#pagination a[@rel='next']"),
       enablePreloading = true,
       loading = false,
       preloadingHandler = null
@@ -243,7 +243,7 @@ if (timeline) {
 
   if (enablePreloading && nextPageLink) {
     log('attaching scroll handler')
-    var nextURL = nextPageLink.href.replace(/(\d+)$/, '')
+    var nextURL = nextPageLink.href.replace(/\bpage=(\d+)/, 'page=@')
     var pageNumber = Number(RegExp.$1)
     
     function nearingBottom() {
@@ -260,7 +260,7 @@ if (timeline) {
         // get the next page!
         loadJSON(nextPageLink.href, function(response) {
           var updates, list = $E('div'),
-              hasNextPage = /<a [^>]*rel="prev"/.test(response['#pagination'])
+              hasNextPage = /<a [^>]*rel="next"/.test(response['#pagination'])
           
           list.innerHTML = response['#timeline']
           updates = xpath2array(select('.hentry', list))
@@ -280,7 +280,7 @@ if (timeline) {
 
           if (hasNextPage) {
             // bump the page number on next page link
-            nextPageLink.href = nextURL + (++pageNumber)
+            nextPageLink.href = nextURL.replace('@', ++pageNumber)
             log("next page is now at %s", nextPageLink.href)
           } else {
             stopPreloading("This person has no more updates.")
