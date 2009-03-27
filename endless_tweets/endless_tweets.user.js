@@ -6,13 +6,13 @@
 // @include        https://twitter.com/*
 // ==/UserScript==
 
-var _realWindow = typeof jQuery == "undefined" ? unsafeWindow : window
-
-;(function(jQuery, twttr){
+(function(realWindow){
 
 //= gm_functions  
 
 var timeline = $('timeline'),
+    jQuery = realWindow.jQuery,
+    twttr = realWindow.twttr,
     currentUser = selectString('meta[@name="session-user-screen_name"]/@content'),
     currentPage = document.body.id,
     debugMode = getValue('debugMode', false),
@@ -660,4 +660,4 @@ function reveal(element) {
 // get a reference to the jQuery object, even if it requires
 // breaking out of the GreaseMonkey sandbox in Firefox
 // (we need to trust Twitter.com)
-})(_realWindow.jQuery, _realWindow.twttr)
+})(typeof jQuery == "undefined" ? unsafeWindow : window)
