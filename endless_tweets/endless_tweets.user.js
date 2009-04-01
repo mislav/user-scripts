@@ -186,25 +186,27 @@ if (timeline) {
     if (polling) startPolling()
     
     var control = $('device_control')
-    var label = $E('label')
-    var pollToggle = $E('input', { type: 'checkbox' })
-    pollToggle.checked = polling
-    label.appendChild(pollToggle)
-    label.appendChild(document.createTextNode(' update every 2 minutes'))
-    control.appendChild($E('br'))
-    control.appendChild(label)
-    
-    pollToggle.addEventListener('change', function(e) {
-      if (pollToggle.checked) {
-        if (!pollInterval) {
-          checkUpdates()
-          startPolling()
+    if (control) {
+      var label = $E('label')
+      var pollToggle = $E('input', { type: 'checkbox' })
+      pollToggle.checked = polling
+      label.appendChild(pollToggle)
+      label.appendChild(document.createTextNode(' update every 2 minutes'))
+      control.appendChild($E('br'))
+      control.appendChild(label)
+
+      pollToggle.addEventListener('change', function(e) {
+        if (pollToggle.checked) {
+          if (!pollInterval) {
+            checkUpdates()
+            startPolling()
+          }
+        } else {
+          if (pollInterval) clearInterval(pollInterval)
         }
-      } else {
-        if (pollInterval) clearInterval(pollInterval)
-      }
-      setValue('polling', (polling = pollToggle.checked))
-    }, false)
+        setValue('polling', (polling = pollToggle.checked))
+      }, false)
+    }
   }
       
   var someTweetLink = find(timeline, '> li[1] .status-body a')
