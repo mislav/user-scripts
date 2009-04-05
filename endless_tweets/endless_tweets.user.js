@@ -512,8 +512,8 @@ addCSS("\
   body.mini ul#tabMenu li { border: none; display: inline; width: auto; }\
   body.mini #tabMenu a { display: block !important; float: left; font-size: 10px !important; padding: 9px 4px !important; }\
   body.mini #side #tabMenu ~ *, body.mini #side #message_count, body.mini #side .about, body.mini #navigation, body.mini #footer { display: none }\
-  body.mini #side { margin-bottom: 0; padding-top: 5px; }\
-  body.mini #side #profile #me_name { display: none; }\
+  body.mini #side { margin-bottom: 0; padding-top: 5px; width: auto !important; }\
+  body.mini #side #profile #me_name, body.mini #side .promotion { display: none; }\
   body.mini #side div.section { padding: 0; }\
   body.mini #side div#profile.section { padding-bottom: 0; }\
   body.mini #side .stats { clear: none; float: left; margin: 5px 7px; }\
@@ -526,7 +526,7 @@ addCSS("\
   body.mini #container > .content-bubble-arrow { display: none; }\
   body.mini #header { margin: 0 !important; }\
   body.mini #header #logo { position: absolute; top: 0; left: 0; z-index: 1; }\
-  body.mini #header #logo img { margin-top: 0; padding: 5px 8px; }\
+  body.mini #header #logo img { margin-top: 0; padding: 5px 8px; width:125px; height:29px; }\
   body.mini #loader { right: 5px; top: 5px; }\
   body#show.mini #container { width: 564px; }\
   body#show.mini #content { width: 534px; padding-top: 40px; }\
