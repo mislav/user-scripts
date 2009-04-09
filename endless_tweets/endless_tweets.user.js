@@ -453,10 +453,10 @@ if (content) {
     if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
       if (textarea.selectionStart == textarea.selectionEnd) {
         var beforeText = textarea.value.slice(0, textarea.selectionStart),
-            afterText = textarea.value.slice(textarea.selectionStart + 1, textarea.value.length),
+            afterText = textarea.value.slice(textarea.selectionStart, textarea.value.length),
             match = beforeText.match(/@(\w+)$/)
-            
-        if (match && (!afterText || afterText.indexOf(/\s/) === 0)) {
+        
+        if (match && (!afterText || /^\s/.test(afterText))) {
           var found = [], partial = match[1]
           
           if (timeline) {
@@ -482,7 +482,8 @@ if (content) {
           if (found.length == 1) {
             var fill = found[0].replace(partial, '')
             if (afterText) {
-              textarea.value = beforeText + fill + ' ' + afterText
+              // afterText already has a space in front
+              textarea.value = beforeText + fill + afterText
               positionCursor(textarea, -afterText.length)
             } else {
               textarea.value += fill + ' '
