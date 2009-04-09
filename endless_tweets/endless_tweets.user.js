@@ -318,8 +318,7 @@ if (timeline) {
       }\
     body#show ol.statuses .actions a { padding: 3px 8px; }\
     body#show #content ol.statuses .meta { font-size: 0.8em; white-space: nowrap; }\
-    #doingForm { max-width: 537px; }\
-    #doingForm #chars_left_notice { top: -4px !important; }\
+    #status_update_form #chars_left_notice { top: -4px !important; }\
     ")
   
   var actions = find('permalink', '.actions')
@@ -337,7 +336,7 @@ if (timeline) {
   if (replyLink) {
     var replyHandler = function(e) {
       var container = $E('div')
-      container.innerHTML = "<form method='post' id='doingForm' action='http://twitter.com/status/update'>\
+      container.innerHTML = "<form method='post' id='status_update_form' class='status-update-form' action='http://twitter.com/status/update'>\
         <fieldset class='common-form standard-form'>\
           <div class='bar'>\
             <h3><label class='doing' for='status'>What are you doing?</label></h3>\
