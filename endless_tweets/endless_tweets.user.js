@@ -447,50 +447,45 @@ if (content) {
     }
   }, false)
   
-  // catch keypresses in the update form
+  // catch TAB keypresses in the update form
   content.addEventListener('keydown', function(e) {
     var textarea = null
     if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
-      if (textarea.selectionStart == textarea.selectionEnd) {
-        var beforeText = textarea.value.slice(0, textarea.selectionStart),
-            afterText = textarea.value.slice(textarea.selectionStart, textarea.value.length),
-            match = beforeText.match(/@(\w+)$/)
+      var slice = function(start, end) {
+        return textarea.value.slice(start, end)
+      }
+      var beforeText = slice(0, textarea.selectionStart),
+          afterText = slice(textarea.selectionEnd, textarea.value.length),
+          selected = slice(textarea.selectionStart, textarea.selectionEnd),
+          completionSelection = /^(\w+) ?$/.test(selected),
+          match = beforeText.match(/@(\w+)$/),
+          trailingWhitespace = /\s/.test(slice(textarea.selectionEnd - 1, textarea.selectionEnd + 1)),
+          cursorMode = !selected && (!afterText || trailingWhitespace),
+          selectionMode = completionSelection && trailingWhitespace
+      
+      if (match && (cursorMode || selectionMode)) {
+        var completion, found = [], partial = match[1]
+        if (!selectionMode) detectTimelineMentions()
         
-        if (match && (!afterText || /^\s/.test(afterText))) {
-          var found = [], partial = match[1]
-          
-          if (timeline) {
-            forEach(select('.status-body > strong a/text()', timeline), function(name) {
-              name = name.nodeValue.toLowerCase()
-              if (friendNames.indexOf(name) < 0) friendNames.push(name)
-            })
-            forEach(select('.entry-content', timeline), function(body) {
-              var matches = body.textContent.match(/@(\w+)/g)
-              if (matches) matches.forEach(function(name) {
-                name = name.slice(1, name.length).toLowerCase()
-                if (friendNames.indexOf(name) < 0) friendNames.push(name)
-              })
-            })
-            friendNames = friendNames.sort()
-          }
-          
-          friendNames.forEach(function(friend) {
-            if (friend.indexOf(partial) === 0) {
-              found.push(friend)
-            }
-          })
-          if (found.length == 1) {
-            var fill = found[0].replace(partial, '')
-            if (afterText) {
-              // afterText already has a space in front
-              textarea.value = beforeText + fill + afterText
-              positionCursor(textarea, -afterText.length)
-            } else {
-              textarea.value += fill + ' '
-            }
-            e.preventDefault()
-          }
+        friendNames.forEach(function(friend) {
+          if (friend.indexOf(partial) === 0 && friend > partial) found.push(friend)
+        })
+        
+        if (found.length == 0) return
+        else e.preventDefault()
+        
+        if (selectionMode) {
+          var nextIndex = found.indexOf(strip(partial + selected)) + 1
+          completion = nextIndex == found.length ? found[0] : found[nextIndex]
+        } else {
+          completion = found[0]
         }
+        
+        var fill = completion.replace(partial, '') + ' '
+        textarea.value = beforeText + fill + afterText.replace(/^ /, '')
+        
+        if (found.length > 1) positionCursor(textarea, beforeText.length, beforeText.length + fill.length)
+        else if (afterText) positionCursor(textarea, -afterText.length)
       }
     }
   }, false)
@@ -599,6 +594,28 @@ function onAvatarLoad(data, callback) {
 
 var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)),
     friendNames = []
+
+function memoizeFriendName(name) {
+  name = name.toLowerCase()
+  if (friendNames.indexOf(name) < 0) friendNames.push(name)
+}
+
+function detectTimelineMentions() {
+  if (timeline) {
+    // pick up any author names on the current timeline
+    forEach(select('.status-body > strong a/text()', timeline), function(name) {
+      memoizeFriendName(name.nodeValue)
+    })
+    // detect any mentioned names
+    forEach(select('.entry-content', timeline), function(body) {
+      var matches = body.textContent.match(/@(\w+)/g)
+      if (matches) matches.forEach(function(name) {
+        memoizeFriendName(name.slice(1, name.length))
+      })
+    })
+    friendNames = friendNames.sort()
+  }
+}
 
 function compare(a, b, filter) {
   if (filter) {
