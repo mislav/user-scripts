@@ -629,7 +629,7 @@ if (friends.length) {
   friends.sort(function(a, b) {
     return compare(a, b, function(vcard) {
       if (!vcard._name) {
-        vcard._name = selectString('./a/@href', vcard).replace(/^\s+|\s+$/g, '').split('/')[3]
+        vcard._name = selectString('./a/@href', vcard).match(/(\w+)\s*$/)[1]
         vcard._nameDowncase = vcard._name.toLowerCase()
       }
       return vcard._nameDowncase
