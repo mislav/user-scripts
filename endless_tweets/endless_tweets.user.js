@@ -721,21 +721,21 @@ if (sidebar) {
 }
 
 if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
-  var notice = $E('p', { id: 'userscript_update' },
+  var notice = $E('span', { id: 'userscript_update' },
     '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
   var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
   notice.appendChild(install)
   
-  var topAlert = $('top_alert')
-  if (!topAlert && home) topAlert = insertAfter($E('div', { id: 'top_alert' }), $('doingForm'))
+  var topAlert = find('content', '.bulletin.info')
+  if (!topAlert && home) topAlert = insertTop($E('div', { 'class': 'bulletin info' }), find(wrapper, '.section'))
   if (topAlert) topAlert.appendChild(notice)
   else insertTop(notice, wrapper)
   
   addCSS("\
-    #userscript_update { text-align: right; color: gray; padding: 0 }\
-    #top_alert #userscript_update { text-align: inherit; padding: 2px; margin-top: 2px }\
+    #userscript_update { display: block }\
+    .wrapper > #userscript_update { text-align: right; color: gray; padding: 0; font-size: 90% }\
+    .bulletin.info #userscript_update { text-align: inherit }\
     body#show #userscript_update { margin: -.6em 0 .6em 0; }\
-    #userscript_update a { text-decoration: underline }\
     ")
 })
 
