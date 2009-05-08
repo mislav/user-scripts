@@ -708,14 +708,14 @@ var scriptURL = 'http://userscripts.org/scripts/show/24398',
     wrapper = find(null, '#content > .wrapper')
     
 if (sidebar) {
-  var section = $('feed') || find(sidebar, '.section')
-  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'powered by ')
+  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'with ')
   scriptInfo.appendChild($E('a', { 'href': scriptURL }, 'Endless Tweets'))
   scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
+  var section = $('rssfeed') || find(sidebar, '.section')
   section.appendChild(scriptInfo)
   
   addCSS("\
-    #endless_tweets { margin-top: .6em; font-size: 11px; font-variant: small-caps; }\
+    #endless_tweets { margin: 0 14px; font-size: 11px; font-variant: small-caps; }\
     #endless_tweets a { font-size: 12px; }\
     ")
 }
