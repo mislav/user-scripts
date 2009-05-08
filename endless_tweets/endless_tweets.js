@@ -605,8 +605,6 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   address.innerHTML = '<a class="googlemap" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
 }
 
-// *** update notification *** //
-
 //= update_notifier
 
 var scriptURL = 'http://userscripts.org/scripts/show/24398',
@@ -645,8 +643,6 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
     ")
 })
 
-// ********* UTILITY FUNCTIONS ********* //
-  
 //= toolkit
 
 function twitterLinkify(text) {

@@ -4,10 +4,33 @@ require 'curl'
 require 'cgi'
 
 class Gm < Thor
+  desc 'build', %(Builds the *.user.js files from *.js sources)
+  def build
+    for name in self.class.scripts.keys
+      source = File.open("#{name}/#{name}.js", 'r')
+      target = File.open("#{name}/#{name}.user.js", 'w')
+      
+      for line in source
+        case line
+        when %r{(\s*)//= (\w+)}
+          helper_name = $2
+          target.puts "/*** #{helper_name} ***/"
+          target.write File.read("toolkit/#{helper_name}.js")
+        else
+          target.write line
+        end
+      end
+      
+      source.close
+      target.close
+      puts target.path
+    end
+  end
+  
   desc 'check', %(Checks scriptLength property on both local and remote file)
   def check
     Net::HTTP.start('userscripts.org') do |http|
-      self.class.scripts.each do |name, id|
+      for name, id in self.class.scripts
         req = Net::HTTP::Head.new script_path(id)
         res = http.request(req)
         remote_size = res.content_length
