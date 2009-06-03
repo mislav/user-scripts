@@ -95,7 +95,9 @@ if (timeline) {
       var url = '/statuses/friends_timeline.json'
       url += debug ? '?count=2' : '?since_id=' + lastReadTweet
       
+      log('checking for new tweets (%s)', url)
       loadJSON(url, function(updates) {
+        log('found %s new tweets', updates.length)
         var data, count = 0
         for (var i = updates.length - 1; i >= 0; i--) {
           data = updates[i]
@@ -124,7 +126,7 @@ if (timeline) {
           setValue('lastReadTweet', (lastReadTweet = data.id))
           livequeryRun()
         }
-      })
+      }, { onerror: function(xhr){ log('error while updating timeline') } })
       
       updateTimestamps()
     }
@@ -137,29 +139,32 @@ if (timeline) {
     
     if (polling) startPolling()
     
-    var control = $('device_control')
-    if (control) {
-      var label = $E('label')
+    var target = $('rssfeed')
+    if (target) {
+      var label = $E('label', {id: 'auto_update', title: 'updates your timeline every 2 minutes'})
       var pollToggle = $E('input', { type: 'checkbox' })
       pollToggle.checked = polling
       label.appendChild(pollToggle)
-      label.appendChild(document.createTextNode(' update every 2 minutes'))
-      control.appendChild($E('br'))
-      control.appendChild(label)
+      label.appendChild(document.createTextNode(' auto-update'))
+      target.appendChild(label)
 
       pollToggle.addEventListener('change', function(e) {
+        log('polling: %s', pollToggle.checked)
         if (pollToggle.checked) {
           if (!pollInterval) {
             checkUpdates()
             startPolling()
           }
         } else {
-          if (pollInterval) clearInterval(pollInterval)
+          if (pollInterval) {
+            clearInterval(pollInterval)
+            pollInterval = null
+          }
         }
         setValue('polling', (polling = pollToggle.checked))
       }, false)
     }
-  }
+  } // if home
       
   var someTweetLink = find(timeline, '> li[1] .status-body a')
   if (someTweetLink) {
@@ -258,6 +263,8 @@ if (timeline) {
     #pagination-message { font-style:italic; text-align:right; margin:1em 0 !important; }\
     #pagination-message + div.bottom_nav { margin-top: 0 !important; }\
     a.googlemap { display: block; margin-top: 4px; }\
+    #auto_update { margin: 0.5em 14px 1em; display: block; padding: 2px 0; }\
+    #auto_update input[type=checkbox] { vertical-align: top; }\
     ")
 } else if (singleTweetPage) {
   addCSS("\
