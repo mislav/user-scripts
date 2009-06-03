@@ -12,10 +12,11 @@ class Gm < Thor
       
       for line in source
         case line
-        when %r{(\s*)//= (\w+)}
-          helper_name = $2
-          target.puts "/*** #{helper_name} ***/"
-          target.write File.read("toolkit/#{helper_name}.js")
+        when %r{(\s*)//= ([\w/.]+)}
+          indentation, partial_name = $1, $2
+          partial = normalize_partial_path(partial_name, name)
+          target.puts "/*** #{partial} ***/"
+          target.write read_partial(partial, indentation)
         else
           target.write line
         end
@@ -71,6 +72,14 @@ class Gm < Thor
     )
   end
   
+  def self.scripts
+    @@scripts ||= {
+      'endless_tweets' => 24398
+    }
+  end
+  
+  private
+  
   def script_path(id)
     "/scripts/source/#{id}.user.js"
   end
@@ -79,9 +88,15 @@ class Gm < Thor
     "#{name}/#{name}.user.js"
   end
   
-  def self.scripts
-    @@scripts ||= {
-      'endless_tweets' => 24398
-    }
+  def normalize_partial_path(path, script_name)
+    if path.index('/')
+      path
+    else
+      "#{script_name}/#{path}"
+    end
+  end
+  
+  def read_partial(path, indentation = nil)
+    source = File.read(path)
   end
 end

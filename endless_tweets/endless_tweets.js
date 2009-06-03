@@ -8,7 +8,7 @@
 
 (function(realWindow){
 
-//= gm_functions  
+//= toolkit/gm_functions.js
 
 var timeline = $('timeline'),
     jQuery = realWindow.jQuery,
@@ -628,7 +628,7 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   address.innerHTML = '<a class="googlemap" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
 }
 
-//= update_notifier
+//= toolkit/update_notifier.js
 
 var scriptURL = 'http://userscripts.org/scripts/show/24398',
     sidebar = $('side'),
@@ -666,7 +666,7 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
     ")
 })
 
-//= toolkit
+//= toolkit/toolkit.js
 
 function twitterLinkify(text) {
   return linkify(text).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
