@@ -1,0 +1,243 @@
+=no_rounded_borders
+  :-moz-border-radius 0 !important
+  :-webkit-border-radius 0 !important
+
+#timeline
+  .status-body .meta
+    :white-space nowrap 
+  .status
+    &.last-read
+      :background #ffffe8 
+      &.hentry_hover:hover
+        :background #ffc 
+    &.aready-read
+      :color #555 
+      a
+        :color #444 !important
+      td
+        &.content strong a
+          :text-decoration none 
+        &.thumb img
+          :opacity .6 
+
+#pagination-message
+  :font-style italic
+  :text-align right
+  :margin 1em 0 !important
+  + div.bottom_nav
+    :margin-top 0 !important
+
+a.googlemap
+  :display block
+  :margin-top 4px
+
+#auto_update
+  :margin 0.5em 14px 1em
+  :display block
+  :padding 2px 0
+  input[type=checkbox]
+    :vertical-align top
+
+body#show
+  .user-info
+    :border-top-color white 
+
+  ol.statuses
+    .status-body
+      :font-size inherit
+      :padding-bottom 0
+    .screen-name
+      :font-size inherit
+    .actions a
+      :padding 3px 8px
+
+  #content ol.statuses
+    .entry-content
+      :font-size inherit
+      :font-family inherit
+      :font-weight normal
+      :background transparent
+      :display inline
+      :line-height 1.2em
+    .meta
+      :font-size 0.8em
+      :white-space nowrap
+      
+  #status_update_form #chars_left_notice
+    :top -4px !important
+
+body#profile ol.statuses .thumb + span.status-body
+  :margin-left 55px
+  :min-height 50px
+
+body.mini
+  #side_base
+    +no_rounded_borders
+    :border-left none !important
+    :display block
+    :position absolute
+    :left 0
+    :top 0
+    :height 40px
+    :width 423px
+    :padding-left 140px
+
+  &#show
+    #container
+      :width 564px
+    #content
+      :width 534px
+      :padding-top 40px
+
+  ul
+    &#primary_nav li
+      :border none
+      :display inline
+      :width auto
+
+    &.sidebar-menu li.active a
+      :font-weight normal
+
+  #primary_nav
+    a
+      :display block !important
+      :float left
+      :clear none !important
+      :font-size 10px !important
+      :padding 9px 4px !important
+    #direct_messages_tab a + a
+      :display none !important
+
+  #side
+    :margin-bottom 0
+    :padding-top 5px
+    :width auto !important
+
+    div.section
+      :padding 0
+
+    #primary_nav ~ *, #message_count, .about, .promotion
+      :display none 
+
+    #profile
+      #me_name
+        :display none
+      .section-links
+        :margin-right 4px
+      &.section
+        :padding 0
+      &.profile-side
+        :margin-bottom 0 !important
+        
+    .stats
+      :clear none
+      :float left
+      :margin 5px 7px
+
+      td + td
+        :border-right none
+        :padding-right 0
+        + td
+          :display none
+
+      a .label
+        :display none
+
+    .user_icon
+      :clear none !important
+      :float left !important
+      :width 31px
+      :position static !important
+
+    #custom_search
+      :display block
+      :padding 0
+      &.active
+        :background none !important
+      input[name=q]
+        :margin 0
+        :width 60px !important
+
+  #navigation, #footer
+    :display none 
+
+  #content
+    +no_rounded_borders
+    :padding-top 40px
+    .wrapper
+      :padding 0
+
+  #status_update_box
+    :max-width 540px
+
+    h3
+      :font-size 1.1em
+
+    #chars_left_notice
+      :font 1.2em "Lucida Grande", Helvetica, sans-serif
+
+    div.info
+      :text-align left
+
+    textarea
+      :width 374px
+      :margin-left 10px
+      :float left
+
+    #currently
+      :min-height auto
+      :width auto
+      :float none
+      :clear both
+      :padding-top 6px
+
+    ~ .section
+      :padding 0 7px
+
+  #container
+    :width 564px
+    :padding 0
+    :margin 0
+    >
+      .columns
+        :margin-bottom 0
+      .content-bubble-arrow
+        :display none
+
+  #header
+    :margin 0 !important
+    #logo
+      :position absolute
+      :top 0
+      :left 0
+      :z-index 1
+      img
+        :margin-top 0
+        :padding 5px 8px
+        :width 125px
+        :height 29px
+      ~ *
+        :display none
+
+  #loader
+    :right 5px
+    :top 5px
+
+#endless_tweets
+  :margin 0 14px
+  :font-size 11px
+  :font-variant small-caps
+  a
+    :font-size 12px
+
+#userscript_update
+  :display block 
+  .wrapper > &
+    :text-align right
+    :color gray
+    :padding 0
+    :font-size 90% 
+  .bulletin.info &
+    :text-align inherit
+  body#show &
+    :margin -0.6em 0 0.6em 0

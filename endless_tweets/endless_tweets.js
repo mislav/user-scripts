@@ -251,35 +251,7 @@ if (timeline) {
       }
     }, false)
   }
-  
-  addCSS("\
-    #timeline .status-body .meta { white-space: nowrap }\
-    #timeline .status.last-read { background: #ffffe8 }\
-    #timeline .status.aready-read { color: #555 }\
-    #timeline .status.aready-read a { color: #444 !important; }\
-    #timeline .status.aready-read td.content strong a { text-decoration: none }\
-    #timeline .status.aready-read td.thumb img { opacity: .6 }\
-    #timeline .status.hentry_hover.last-read:hover { background: #ffc }\
-    #pagination-message { font-style:italic; text-align:right; margin:1em 0 !important; }\
-    #pagination-message + div.bottom_nav { margin-top: 0 !important; }\
-    a.googlemap { display: block; margin-top: 4px; }\
-    #auto_update { margin: 0.5em 14px 1em; display: block; padding: 2px 0; }\
-    #auto_update input[type=checkbox] { vertical-align: top; }\
-    ")
 } else if (singleTweetPage) {
-  addCSS("\
-    body#show .user-info { border-top-color: white }\
-    body#show ol.statuses .status-body, body#show ol.statuses .screen-name { font-size: inherit; }\
-    body#show ol.statuses .status-body { padding-bottom: 0; }\
-    body#show #content ol.statuses .entry-content {\
-      font-size: inherit; font-family: inherit; font-weight: normal;\
-      background: transparent; display: inline; line-height: 1.2em;\
-      }\
-    body#show ol.statuses .actions a { padding: 3px 8px; }\
-    body#show #content ol.statuses .meta { font-size: 0.8em; white-space: nowrap; }\
-    #status_update_form #chars_left_notice { top: -4px !important; }\
-    ")
-  
   var actions = find('permalink', '.actions')
   if (actions) {
     actions.style.top = document.defaultView.getComputedStyle(actions, null).top
@@ -373,10 +345,6 @@ if (timeline) {
   }
 }
 
-if ('profile' == currentPage) addCSS("\
-  body#profile ol.statuses .thumb + span.status-body { margin-left: 55px; min-height: 50px; }\
-  ")
-
 var content = $('content')
 if (content) {
   // catch click to "in reply to ..." links
@@ -456,51 +424,6 @@ function checkViewportWidth() {
 }
 window.addEventListener('resize', checkViewportWidth, false)
 checkViewportWidth()
-
-addCSS("\
-  body.mini #side_base {\
-    -moz-border-radius: 0 !important; border-left: none !important; -webkit-border-radius: 0 !important;\
-    display: block;\ position: absolute; left: 0; top: 0;\
-    height: 40px; width: 423px; padding-left: 140px;\
-  }\
-  body.mini ul#primary_nav li { border: none; display: inline; width: auto; }\
-  body.mini #primary_nav a { display: block !important; float: left; clear: none !important; font-size: 10px !important; padding: 9px 4px !important; }\
-  body.mini #primary_nav #direct_messages_tab a + a { display:none !important; }\
-  body.mini #side #primary_nav ~ *, body.mini #side #message_count, body.mini #side .about, body.mini #navigation, body.mini #footer { display: none }\
-  body.mini ul.sidebar-menu li.active a { font-weight: normal; }\
-  body.mini #side { margin-bottom: 0; padding-top: 5px; width: auto !important; }\
-  body.mini #side #profile #me_name, body.mini #side .promotion { display: none; }\
-  body.mini #side #profile .section-links { margin-right: 4px; }\
-  body.mini #side div.section { padding: 0; }\
-  body.mini #side div#profile.section { padding: 0; }\
-  body.mini #side div#profile.profile-side { margin-bottom: 0 !important; }\
-  body.mini #side .stats { clear: none; float: left; margin: 5px 7px; }\
-  body.mini #side .stats td + td + td, body.mini #side .stats a .label { display: none; }\
-  body.mini #side .stats td + td { border-right: none; padding-right: 0; }\
-  body.mini #side .user_icon { clear: none !important; float: left !important; width: 31px; position: static !important; }\
-  body.mini #side #custom_search { display: block; padding: 0; }\
-  body.mini #side #custom_search.active { background: none !important; }\
-  body.mini #side #custom_search input[name=q] { margin: 0; width: 60px !important; }\
-  body.mini #content { padding-top: 40px; -moz-border-radius: 0 !important; -webkit-border-radius: 0 !important; }\
-  body.mini #content .wrapper { padding: 0; }\
-  body.mini #status_update_box { max-width: 540px; }\
-  body.mini #status_update_box h3 { font-size: 1.1em; }\
-  body.mini #status_update_box #chars_left_notice { font: 1.2em \"Lucida Grande\", Helvetica, sans-serif; }\
-  body.mini #status_update_box div.info { text-align: left; }\
-  body.mini #status_update_box textarea { width: 374px; margin-left: 10px; float: left; }\
-  body.mini #status_update_box #currently { min-height: auto; width: auto; float: none; clear: both; padding-top: 6px; }\
-  body.mini #status_update_box ~ .section { padding: 0 7px; }\
-  body.mini #container { width: 564px; padding: 0; margin: 0; }\
-  body.mini #container > .columns { margin-bottom: 0; }\
-  body.mini #container > .content-bubble-arrow { display: none; }\
-  body.mini #header { margin: 0 !important; }\
-  body.mini #header #logo { position: absolute; top: 0; left: 0; z-index: 1; }\
-  body.mini #header #logo img { margin-top: 0; padding: 5px 8px; width:125px; height:29px; }\
-  body.mini #header #logo ~ * { display: none; }\
-  body.mini #loader { right: 5px; top: 5px; }\
-  body#show.mini #container { width: 564px; }\
-  body#show.mini #content { width: 534px; padding-top: 40px; }\
-  ")
 
 // *** JSON to HTML markup for a single update *** //
 
@@ -640,11 +563,6 @@ if (sidebar) {
   scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
   var section = $('rssfeed') || find(sidebar, '.section')
   section.appendChild(scriptInfo)
-  
-  addCSS("\
-    #endless_tweets { margin: 0 14px; font-size: 11px; font-variant: small-caps; }\
-    #endless_tweets a { font-size: 12px; }\
-    ")
 }
 
 if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
@@ -657,13 +575,6 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
   if (!topAlert && home) topAlert = insertTop($E('div', { 'class': 'bulletin info' }), find(wrapper, '.section'))
   if (topAlert) topAlert.appendChild(notice)
   else insertTop(notice, wrapper)
-  
-  addCSS("\
-    #userscript_update { display: block }\
-    .wrapper > #userscript_update { text-align: right; color: gray; padding: 0; font-size: 90% }\
-    .bulletin.info #userscript_update { text-align: inherit }\
-    body#show #userscript_update { margin: -.6em 0 .6em 0; }\
-    ")
 })
 
 //= toolkit/toolkit.js
@@ -675,6 +586,8 @@ function twitterLinkify(text) {
 function reveal(element) {
   jQuery(element).hide().slideDown()
 }
+
+//= endless_tweets.sass
 
 // get a reference to the jQuery object, even if it requires
 // breaking out of the GreaseMonkey sandbox in Firefox

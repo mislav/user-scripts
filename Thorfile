@@ -2,6 +2,7 @@
 require 'net/http'
 require 'curl'
 require 'cgi'
+require 'sass'
 
 class Gm < Thor
   desc 'build', %(Builds the *.user.js files from *.js sources)
@@ -98,5 +99,14 @@ class Gm < Thor
   
   def read_partial(path, indentation = nil)
     source = File.read(path)
+    extension = path =~ /\.(\w{2,5})$/ && $1
+    
+    case extension
+    when 'sass'
+      css = Sass::Engine.new(source, :style => :compact).to_css
+      %[addCSS("#{css.gsub(/\n+/, "\\\n").gsub('"', '\"')}")\n]
+    else
+      source
+    end
   end
 end
