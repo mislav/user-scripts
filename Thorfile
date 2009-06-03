@@ -16,8 +16,13 @@ class Gm < Thor
         when %r{(\s*)//= ([\w/.]+)}
           indentation, partial_name = $1, $2
           partial = normalize_partial_path(partial_name, name)
-          target.puts "/*** #{partial} ***/"
-          target.write read_partial(partial, indentation)
+          
+          if File.exists?(partial)
+            target.puts "#{indentation}/*** #{partial} ***/"
+            target.write read_partial(partial, indentation)
+          else
+            target.puts "#{indentation}/*** NOT FOUND: #{partial} ***/"
+          end
         else
           target.write line
         end
@@ -101,12 +106,18 @@ class Gm < Thor
     source = File.read(path)
     extension = path =~ /\.(\w{2,5})$/ && $1
     
-    case extension
+    partial = case extension
     when 'sass'
       css = Sass::Engine.new(source, :style => :compact).to_css
       %[addCSS("#{css.gsub(/\n+/, "\\\n").gsub('"', '\"')}")\n]
     else
       source
+    end
+
+    if indentation and not indentation.empty?
+      partial.gsub(/^/, indentation)
+    else
+      partial
     end
   end
 end

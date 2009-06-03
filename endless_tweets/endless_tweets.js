@@ -51,120 +51,8 @@ if (timeline) {
       preloadingHandler = null
   
   if (home) {
-    var polling = getValue('polling', false),
-        growls = window.fluid ? [] : null
-    
-    function updateTimestamps() {
-      var now = new Date()
-      
-      forEach(select('.meta .published'), function(span) {
-        var time, title = span.getAttribute('title')
-        if (title) {
-          time = new Date(title)
-          span.innerHTML = Time.agoInWords(time, now) + ' ago'
-        } else {
-          time = Time.agoToDate(strip(span.textContent), now)
-          span.setAttribute('title', time.toString())
-        }
-      })
-    }
-    
-    function deliverUpdate(data) {
-      var update = buildUpdateFromJSON(data)
-      
-    	// finally, insert the new tweet in the timeline ...
-      insertTop(update, timeline)
-      // ... and remove the oldest tweet from the timeline
-      var oldestTweet = find(timeline, '> li[last()]')
-      removeChild(oldestTweet)
-      
-      // never send Growl notifications for own tweets
-      if (growls && data.user.screen_name != currentUser) {
-        var title = data.user.screen_name + ' updated ' + strip(find(update, '.entry-date').textContent),
-            description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-        growls.push({
-          title: title, description: description, icon: find(update, '.author img'),
-          identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
-        })
-      }
-    }
-    
-    var debug = false // temp set to true for testing purposes
-    
-    var checkUpdates = function() {
-      var url = '/statuses/friends_timeline.json'
-      url += debug ? '?count=2' : '?since_id=' + lastReadTweet
-      
-      log('checking for new tweets (%s)', url)
-      loadJSON(url, function(updates) {
-        log('found %s new tweets', updates.length)
-        var data, count = 0
-        for (var i = updates.length - 1; i >= 0; i--) {
-          data = updates[i]
-          // only show the update if an element with that status ID is not already present
-          if (debug || !$('status_' + data.id)) {
-            deliverUpdate(data)
-            count++
-          }
-        }
-        if (growls) {
-          var limit = growls.length - 4
-          for (var i = growls.length - 1; i >= 0; i--) {
-            if (i < limit) {
-              window.fluid.showGrowlNotification({
-                title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
-                description: '',
-                onclick: function() { window.fluid.activate() }
-              })
-              break
-            }
-            window.fluid.showGrowlNotification(growls[i])
-          }
-          growls = []
-        }
-        if (count) {
-          setValue('lastReadTweet', (lastReadTweet = data.id))
-          livequeryRun()
-        }
-      }, { onerror: function(xhr){ log('error while updating timeline') } })
-      
-      updateTimestamps()
-    }
-    
-    var pollInterval = null
-    
-    var startPolling = function() {
-      pollInterval = setInterval(checkUpdates, (debug ? 12 : 120) * 1000)
-    }
-    
-    if (polling) startPolling()
-    
-    var target = $('rssfeed')
-    if (target) {
-      var label = $E('label', {id: 'auto_update', title: 'updates your timeline every 2 minutes'})
-      var pollToggle = $E('input', { type: 'checkbox' })
-      pollToggle.checked = polling
-      label.appendChild(pollToggle)
-      label.appendChild(document.createTextNode(' auto-update'))
-      target.appendChild(label)
-
-      pollToggle.addEventListener('change', function(e) {
-        log('polling: %s', pollToggle.checked)
-        if (pollToggle.checked) {
-          if (!pollInterval) {
-            checkUpdates()
-            startPolling()
-          }
-        } else {
-          if (pollInterval) {
-            clearInterval(pollInterval)
-            pollInterval = null
-          }
-        }
-        setValue('polling', (polling = pollToggle.checked))
-      }, false)
-    }
-  } // if home
+    //= polling.js
+  }
       
   var someTweetLink = find(timeline, '> li[1] .status-body a')
   if (someTweetLink) {
@@ -252,97 +140,7 @@ if (timeline) {
     }, false)
   }
 } else if (singleTweetPage) {
-  var actions = find('permalink', '.actions')
-  if (actions) {
-    actions.style.top = document.defaultView.getComputedStyle(actions, null).top
-  }
-  
-  var replyLink = find('content', '.actions .repl')
-  if (replyLink) {
-    removeClassName(replyLink, 'repl')
-    addClassName(replyLink, 'reply')
-  } else {
-    replyLink = find('content', '.actions .reply')
-  }
-  if (replyLink) {
-    var replyHandler = function(e) {
-      var container = $E('div')
-      container.innerHTML = "<form method='post' id='status_update_form' class='status-update-form' action='http://twitter.com/status/update'>\
-        <fieldset class='common-form standard-form'>\
-          <div class='bar'>\
-            <h3><label class='doing' for='status'>What are you doing?</label></h3>\
-            <span class='numeric' id='chars_left_notice'>\
-              <strong class='char-counter' id='status-field-char-counter'>140</strong>\
-            </span>\
-          </div>\
-          <div class='info'>\
-            <textarea name='status' id='status' rows='2' cols='40'></textarea>\
-            <div class='status-btn'>\
-              <input type='submit' class='status-btn round-btn disabled' id='update-submit' value='reply' name='update'/>\
-            </div>\
-          </div>\
-        </fieldset>\
-      </form>"
-      
-      var username = selectString('meta[@name="page-user-screen_name"]/@content'),
-          replyForm = $('permalink').parentNode.appendChild(container.firstChild),
-          label = find(replyForm, 'label.doing'),
-          textInput = $('status'),
-          counter = $('status-field-char-counter'),
-          submitButton = $('update-submit'),
-          submitDisabled = true,
-          updateCounter = function(e) {
-            counter.innerHTML = 140 - this.value.length
-            if (e && submitDisabled) {
-              removeClassName(submitButton, 'disabled')
-              submitDisabled = false
-            }
-          }
-          
-      label.innerHTML = 'Reply to ' + username + ':'
-      textInput.value = '@' + username + ' '
-      textInput.focus()
-      cursorEnd(textInput)
-      updateCounter.call(textInput)
-      textInput.addEventListener('keyup', updateCounter, false)
-      
-      replyForm.addEventListener('submit', function(e) {
-        e.preventDefault()
-        if (!submitDisabled) {
-          addClassName(submitButton, 'disabled')
-          submitDisabled = true
-          // submit the reply to the server
-          twttr.loading()
-          loadJSON(replyForm.getAttribute('action'), function(response) {
-            twttr.loaded()
-            removeChild(replyForm)
-            // twitter can return the full HTML for the status
-            if (response.status_li) {
-              var miniTimeline = $E('ol', { 'class': 'statuses' }, response.status_li)
-            } else {
-              var miniTimeline = buildUpdateFromJSON(response).parentNode
-            }
-            insertAfter(miniTimeline, $('permalink'))
-            reveal(miniTimeline.firstChild)
-          }, {
-            method: replyForm.getAttribute('method'),
-            data: {
-              status: textInput.value,
-              in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
-              return_rendered_status: true, twttr: true,
-              authenticity_token: twttr.form_authenticity_token,
-              source: sourceString
-            },
-            headers: { 'Cookie': getTwitterSession() }
-          })
-        }
-      }, false)
-      
-      e.preventDefault()
-      replyLink.removeEventListener('click', replyHandler, false)
-    }
-    replyLink.addEventListener('click', replyHandler, false)
-  }
+  //= inline_reply.js
 }
 
 var content = $('content')
@@ -378,42 +176,7 @@ if (content) {
   content.addEventListener('keydown', function(e) {
     var textarea = null
     if (e.keyCode == 9 && (textarea = up(e.target, 'textarea', this))) {
-      var slice = function(start, end) {
-        return textarea.value.slice(start, end)
-      }
-      var beforeText = slice(0, textarea.selectionStart),
-          afterText = slice(textarea.selectionEnd, textarea.value.length),
-          selected = slice(textarea.selectionStart, textarea.selectionEnd),
-          completionSelection = /^(\w+) ?$/.test(selected),
-          match = beforeText.match(/@(\w+)$/),
-          trailingWhitespace = /\s/.test(slice(textarea.selectionEnd - 1, textarea.selectionEnd + 1)),
-          cursorMode = !selected && (!afterText || trailingWhitespace),
-          selectionMode = completionSelection && trailingWhitespace
-      
-      if (match && (cursorMode || selectionMode)) {
-        var completion, found = [], partial = match[1]
-        if (!selectionMode) detectTimelineMentions()
-        
-        friendNames.forEach(function(friend) {
-          if (friend.indexOf(partial) === 0 && friend > partial) found.push(friend)
-        })
-        
-        if (found.length == 0) return
-        else e.preventDefault()
-        
-        if (selectionMode) {
-          var nextIndex = found.indexOf(strip(partial + selected)) + 1
-          completion = nextIndex == found.length ? found[0] : found[nextIndex]
-        } else {
-          completion = found[0]
-        }
-        
-        var fill = completion.replace(partial, '') + ' '
-        textarea.value = beforeText + fill + afterText.replace(/^ /, '')
-        
-        if (found.length > 1) positionCursor(textarea, beforeText.length, beforeText.length + fill.length)
-        else if (afterText) positionCursor(textarea, -afterText.length)
-      }
+      if (completeName(textarea)) e.preventDefault()
     }
   }, false)
 }
@@ -488,57 +251,7 @@ function onAvatarLoad(data, callback) {
   avatar.src = data.user.profile_image_url
 }
 
-// *** sorting of friends (sidebar) *** //
-
-var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)),
-    friendNames = []
-
-function memoizeFriendName(name) {
-  name = name.toLowerCase()
-  if (friendNames.indexOf(name) < 0) friendNames.push(name)
-}
-
-function detectTimelineMentions() {
-  if (timeline) {
-    // pick up any author names on the current timeline
-    forEach(select('.status-body > strong a/text()', timeline), function(name) {
-      memoizeFriendName(name.nodeValue)
-    })
-    // detect any mentioned names
-    forEach(select('.entry-content', timeline), function(body) {
-      var matches = body.textContent.match(/@(\w+)/g)
-      if (matches) matches.forEach(function(name) {
-        memoizeFriendName(name.slice(1, name.length))
-      })
-    })
-    friendNames = friendNames.sort()
-  }
-}
-
-function compare(a, b, filter) {
-  if (filter) {
-    a = filter(a); b = filter(b);
-  }
-  if (a == b) return 0;
-  return a < b ? -1 : 1;
-}
-
-if (friends.length) {
-  friends.sort(function(a, b) {
-    return compare(a, b, function(vcard) {
-      if (!vcard._name) {
-        vcard._name = selectString('./a/@href', vcard).match(/(\w+)\s*$/)[1]
-        vcard._nameDowncase = vcard._name.toLowerCase()
-      }
-      return vcard._nameDowncase
-    })
-  })
-
-  friends.forEach(function(vcard) {
-    vcard.parentNode.appendChild(vcard)
-    friendNames.push(vcard._nameDowncase)
-  })
-}
+//= friends.js
 
 // *** iPhone location map *** //
 
