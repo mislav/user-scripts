@@ -456,24 +456,40 @@ addCSS("\
     display: block;\ position: absolute; left: 0; top: 0;\
     height: 40px; width: 423px; padding-left: 140px;\
   }\
-  body.mini ul#tabMenu li { border: none; display: inline; width: auto; }\
-  body.mini #tabMenu a { display: block !important; float: left; font-size: 10px !important; padding: 9px 4px !important; }\
-  body.mini #side #tabMenu ~ *, body.mini #side #message_count, body.mini #side .about, body.mini #navigation, body.mini #footer { display: none }\
+  body.mini ul#primary_nav li { border: none; display: inline; width: auto; }\
+  body.mini #primary_nav a { display: block !important; float: left; clear: none !important; font-size: 10px !important; padding: 9px 4px !important; }\
+  body.mini #primary_nav #direct_messages_tab a + a { display:none !important; }\
+  body.mini #side #primary_nav ~ *, body.mini #side #message_count, body.mini #side .about, body.mini #navigation, body.mini #footer { display: none }\
+  body.mini ul.sidebar-menu li.active a { font-weight: normal; }\
   body.mini #side { margin-bottom: 0; padding-top: 5px; width: auto !important; }\
   body.mini #side #profile #me_name, body.mini #side .promotion { display: none; }\
+  body.mini #side #profile .section-links { margin-right: 4px; }\
   body.mini #side div.section { padding: 0; }\
-  body.mini #side div#profile.section { padding-bottom: 0; }\
+  body.mini #side div#profile.section { padding: 0; }\
+  body.mini #side div#profile.profile-side { margin-bottom: 0 !important; }\
   body.mini #side .stats { clear: none; float: left; margin: 5px 7px; }\
-  body.mini #side .stats td:last-child, body.mini #side .stats a .label { display: none; }\
+  body.mini #side .stats td + td + td, body.mini #side .stats a .label { display: none; }\
   body.mini #side .stats td + td { border-right: none; padding-right: 0; }\
   body.mini #side .user_icon { clear: none !important; float: left !important; width: 31px; position: static !important; }\
+  body.mini #side #custom_search { display: block; padding: 0; }\
+  body.mini #side #custom_search.active { background: none !important; }\
+  body.mini #side #custom_search input[name=q] { margin: 0; width: 60px !important; }\
   body.mini #content { padding-top: 40px; -moz-border-radius: 0 !important; -webkit-border-radius: 0 !important; }\
+  body.mini #content .wrapper { padding: 0; }\
+  body.mini #status_update_box { max-width: 540px; }\
+  body.mini #status_update_box h3 { font-size: 1.1em; }\
+  body.mini #status_update_box #chars_left_notice { font: 1.2em \"Lucida Grande\", Helvetica, sans-serif; }\
+  body.mini #status_update_box div.info { text-align: left; }\
+  body.mini #status_update_box textarea { width: 374px; margin-left: 10px; float: left; }\
+  body.mini #status_update_box #currently { min-height: auto; width: auto; float: none; clear: both; padding-top: 6px; }\
+  body.mini #status_update_box ~ .section { padding: 0 7px; }\
   body.mini #container { width: 564px; padding: 0; margin: 0; }\
   body.mini #container > .columns { margin-bottom: 0; }\
   body.mini #container > .content-bubble-arrow { display: none; }\
   body.mini #header { margin: 0 !important; }\
   body.mini #header #logo { position: absolute; top: 0; left: 0; z-index: 1; }\
   body.mini #header #logo img { margin-top: 0; padding: 5px 8px; width:125px; height:29px; }\
+  body.mini #header #logo ~ * { display: none; }\
   body.mini #loader { right: 5px; top: 5px; }\
   body#show.mini #container { width: 564px; }\
   body#show.mini #content { width: 534px; padding-top: 40px; }\
