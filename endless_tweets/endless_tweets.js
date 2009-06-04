@@ -13,6 +13,7 @@
 var timeline = $('timeline'),
     jQuery = realWindow.jQuery,
     twttr = realWindow.twttr,
+    pageTracker = realWindow._gat && realWindow._gat._getTracker("UA-87067-6"),
     currentUser = selectString('meta[@name="session-user-screen_name"]/@content'),
     currentPage = document.body.id,
     debugMode = getValue('debugMode', false),
@@ -21,6 +22,33 @@ var timeline = $('timeline'),
     sourceString = 'endlesstweets',
     scriptVersion = '0.9.6',
     scriptLength = 37585
+
+function trackSegment(seg) {
+  if (pageTracker) {
+    try {
+      pageTracker._setVar(seg)
+    } catch(err) {}
+  }
+}
+function trackPageview(url) {
+  if (pageTracker) {
+    if (url) url = url.replace(/^https?:\/\/[^\/]+/, '')
+    try {
+      pageTracker._trackPageview(url)
+    } catch(err) {}
+  }
+}
+trackPageview()
+
+function trackClicks(element, fn) {
+  element.addEventListener('mousedown', function(e) {
+    if (e.button == 0) {
+      if (typeof fn == "function") fn.call(this, e)
+      else if (fn) trackPageview(fn)
+      else if (element.href) trackPageview(element.href)
+    }
+  }, false)
+}
 
 if (home) {
   var lastReadTweet = getValue('lastReadTweet', 0),
@@ -124,6 +152,8 @@ if (timeline) {
           
           livequeryRun()
           updates, list = null
+          
+          trackPageview(nextPageLink.href)
 
           if (hasNextPage) {
             // bump the page number on next page link
@@ -149,9 +179,10 @@ if (content) {
   content.addEventListener('click', function(e) {
     var link = up(e.target, 'a', this)
     if (link && /^\s*in reply to /.test(link.textContent)) {
-      var statusID = link.href.match(/(\d+)$/)[1]
+      var statusID = link.href.match(/(\d+)$/)[1],
+          statusUrl = '/statuses/show/' + statusID + '.json'
       twttr.loading()
-      loadJSON('/statuses/show/' + statusID + '.json', function(response) {
+      loadJSON(statusUrl, function(response) {
         onAvatarLoad(response, function() {
           var update = buildUpdateFromJSON(response),
               currentStatus = up(link, '.status', content)
@@ -166,6 +197,7 @@ if (content) {
           reveal(update)
           twttr.loaded()
           livequeryRun()
+          trackPageview(statusUrl)
         })
       })
       e.preventDefault()
@@ -181,9 +213,21 @@ if (content) {
   }, false)
 }
 
+var miniMode = false
+
 function checkViewportWidth() {
-  if (document.body.clientWidth < 780) addClassName(document.body, 'mini')
-  else removeClassName(document.body, 'mini')
+  if (document.body.clientWidth < 780) {
+    if (!miniMode) {
+      addClassName(document.body, 'mini')
+      miniMode = true
+      trackSegment('mini layout')
+    }
+  }
+  else if (miniMode) {
+    removeClassName(document.body, 'mini')
+    miniMode = false
+    trackSegment('')
+  }
 }
 window.addEventListener('resize', checkViewportWidth, false)
 checkViewportWidth()
@@ -244,6 +288,8 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
       coordinates = RegExp['$&']
   // create static map that links to Google Maps
   address.innerHTML = '<a class="googlemap" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
+  
+  trackClicks(down(address), window.location + '/map')
 }
 
 //= toolkit/update_notifier.js
@@ -253,11 +299,13 @@ var scriptURL = 'http://userscripts.org/scripts/show/24398',
     wrapper = find(null, '#content > .wrapper')
     
 if (sidebar) {
-  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'with ')
-  scriptInfo.appendChild($E('a', { 'href': scriptURL }, 'Endless Tweets'))
+  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'with '),
+      scriptLink = $E('a', { href: scriptURL }, 'Endless Tweets')
+  scriptInfo.appendChild(scriptLink)
   scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
   var section = $('rssfeed') || find(sidebar, '.section')
   section.appendChild(scriptInfo)
+  trackClicks(scriptLink, '/endless-tweets/sidebar-link')
 }
 
 if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
@@ -270,6 +318,7 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
   if (!topAlert && home) topAlert = insertTop($E('div', { 'class': 'bulletin info' }), find(wrapper, '.section'))
   if (topAlert) topAlert.appendChild(notice)
   else insertTop(notice, wrapper)
+  trackClicks(install, '/endless-tweets/update-link')
 })
 
 //= toolkit/toolkit.js
