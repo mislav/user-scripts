@@ -3,6 +3,7 @@ require 'net/http'
 require 'curl'
 require 'cgi'
 require 'sass'
+require 'stringio'
 
 class Gm < Thor
   desc 'build', %(Builds the *.user.js files from *.js sources)
@@ -11,25 +12,13 @@ class Gm < Thor
       source = File.open("#{name}/#{name}.js", 'r')
       target = File.open("#{name}/#{name}.user.js", 'w')
       
-      for line in source
-        case line
-        when %r{(\s*)//= ([\w/.]+)}
-          indentation, partial_name = $1, $2
-          partial = normalize_partial_path(partial_name, name)
-          
-          if File.exists?(partial)
-            target.puts "#{indentation}/*** #{partial} ***/"
-            target.write read_partial(partial, indentation)
-          else
-            target.puts "#{indentation}/*** NOT FOUND: #{partial} ***/"
-          end
-        else
-          target.write line
-        end
+      begin
+        render_template(source, target)
+      ensure
+        source.close
+        target.close
       end
       
-      source.close
-      target.close
       puts target.path
     end
   end
@@ -94,30 +83,78 @@ class Gm < Thor
     "#{name}/#{name}.user.js"
   end
   
-  def normalize_partial_path(path, script_name)
+  def normalize_partial_path(path, dir)
     if path.index('/')
       path
     else
-      "#{script_name}/#{path}"
+      "#{dir}/#{path}"
     end
   end
   
-  def read_partial(path, indentation = nil)
-    source = File.read(path)
-    extension = path =~ /\.(\w{2,5})$/ && $1
-    
-    partial = case extension
+  def render_template(file, target = nil)
+    partial = case file.extension
     when 'sass'
-      css = Sass::Engine.new(source, :style => :compact).to_css
-      %[addCSS("#{css.gsub(/\n+/, "\\\n").gsub('"', '\"')}")\n]
+      css = Sass::Engine.new(file.read, :style => :compact).to_css
+      %[addCSS(#{javascript_string css})\n]
+    when 'js'
+      target ||= StringIO.new
+      render_js_with_partials(file, target)
+      target.string if StringIO === target
     else
-      source
+      raise "don't know how to handle .#{file.extension}"
     end
+  end
+  
+  def render_js_with_partials(source, target)
+    dir = File.dirname(source.path)
+    
+    for line in source
+      case line
+      when %r{^(\s*)(.*)//= ([\w/.]+)}
+        indentation, code, partial_name = $1, $2, $3
+        partial = normalize_partial_path(partial_name, dir)
+        target << indentation
+        target << code
+        
+        if File.exists?(partial)
+          partial_file = File.open(partial, 'r')
+          begin
+            rendered_partial = render_template(partial_file)
+          ensure
+            partial_file.close
+          end
+          
+          if code.empty?
+            target.puts "/*** #{partial} ***/"
+            target << indentation
+          end
+          
+          unless indentation.empty?
+            rendered_partial.gsub!(/\n([^\n])/, "\n#{indentation}\\1")
+          end
+          
+          target << rendered_partial
+        else
+          if code.empty?
+            target.puts "/*** NOT FOUND: #{partial} ***/"
+          else
+            target.puts "null // NOT FOUND: #{partial}"
+          end
+        end
+      else
+        target << line
+      end
+    end
+  end
+  
+  def javascript_string(string)
+    string = string.gsub('\\', '\\\\').gsub(/\n+/, "\\\n").gsub('"', '\"')
+    %["#{string}"]
+  end
+end
 
-    if indentation and not indentation.empty?
-      partial.gsub(/^/, indentation)
-    else
-      partial
-    end
+File.class_eval do
+  def extension
+    @extension ||= path && path =~ /\.(\w{2,5})$/ && $1
   end
 end
