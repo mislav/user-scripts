@@ -191,7 +191,8 @@ checkViewportWidth()
 // *** JSON to HTML markup for a single update *** //
 
 var buildUpdateFromJSON = (function() {
-  var updateContainer
+  var updateContainer,
+      updateHTML = //= tweet.haml
   
   function prepareContainer() {
     if (!updateContainer || updateContainer.parentNode)
@@ -212,36 +213,17 @@ var buildUpdateFromJSON = (function() {
         fav_class: data.favorited ? 'fav' : 'non-fav',
       }
 
-    var updateHTML = ["<li id='status_#{id}' class='hentry status u-#{username}'>\
-      <span class='thumb vcard author'><a class='url' href='/#{username}'>\
-        <img width='48' height='48' src='#{avatar}' class='photo fn' alt='#{real_name}'/>\
-      </a></span>\
-      <span class='status-body'>"]
-    if (data.user.protected) updateHTML.push("<img title='#{real_name}’s updates are protected— please don’t share!'\
-      src='http://assets2.twitter.com/images/icon_lock.gif' class='lock' alt='Icon_lock'/> ")
-    updateHTML.push("<strong><a class='screen-name' title='#{real_name}' href='/#{username}'>#{username}</a></strong>\
-      <span class='entry-content'>#{text}</span>\
-      <span class='meta entry-meta'>\
-        <a rel='bookmark' class='entry-date' href='/#{username}/status/#{id}'>\
-          <span title='#{created_at}' class='published'>#{created_ago}</span>\
-        </a>\
-        <span>from #{source}</span>")
-    if (data.in_reply_to_status_id) updateHTML.push(
-      " <a href='/#{in_reply_to}/status/#{in_reply_to_status}'>in reply to #{in_reply_to}</a>")
-    updateHTML.push("</span>\
-      </span>\
-      <span class='actions'><div>\
-        <a title='#{fav_action} this update' id='status_star_#{id}' class='fav-action #{fav_class}'>&nbsp;&nbsp;</a>")
-    if (preparedData.username == currentUser) updateHTML.push("<a title='delete this update' class='del'>&nbsp;&nbsp;</a>")
-    else updateHTML.push("<a title='reply to #{username}' class='reply'\
-      href='/home?status=@#{username}%20&amp;in_reply_to_status_id=#{id}&amp;in_reply_to=#{username}'>&nbsp;&nbsp;</a>")
-    updateHTML.push("</div></span></li>")
-    
     prepareContainer()
-    updateContainer.innerHTML = updateHTML.join('').replace(/#\{(\w+)\}/g, function(_, key) {
-      return preparedData[key]
+    updateContainer.innerHTML = updateHTML.replace(/[A-Z][A-Z0-9_]+/g, function(key) {
+      return preparedData[key.toLowerCase()] || key
     })
-    return updateContainer.firstChild
+    var update = updateContainer.firstChild
+    
+    if (!data.user.protected) removeChild(find(update, '.status-body > img'))
+    if (!data.in_reply_to_status_id) removeChild(find(update, '.meta > a[last()]'))
+    removeChild(find(update, '.actions a.' + (preparedData.username == currentUser ? 'reply' : 'del')))
+    
+    return update
   }
 })()
 

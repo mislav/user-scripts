@@ -1,0 +1,19 @@
+%li#status_ID.hentry.status.u-USERNAME
+  %span.thumb.vcard.author<
+    %a.url{ :href => "/USERNAME" }
+      %img.photo.fn{ :src => "AVATAR", :height => "48", :alt => "REAL_NAME", :width => "48" }
+  %span.status-body
+    %img.lock{ :title => "REAL_NAME’s updates are protected— please don’t share!", :src => "http://assets2.twitter.com/images/icon_lock.gif", :alt => "Icon_lock" }
+    %strong<
+      %a.screen-name{ :href => "USERNAME", :title => "REAL_NAME" } USERNAME
+    %span.entry-content TEXT
+    %span.meta.entry-meta
+      %a.entry-date{ :href => "/USERNAME/status/ID", :rel => "bookmark" }
+        %span.published{ :title => "CREATED_AT" } CREATED_AGO
+      %span from SOURCE
+      %a{ :href => "/IN_REPLY_TO/status/IN_REPLY_TO_STATUS" } in reply to IN_REPLY_TO
+  %span.actions<
+    %div
+      %a#status_star_ID.fav-action.FAV_CLASS{ :title => "FAV_ACTION this update" } &nbsp;&nbsp;
+      %a.del{ :title => "delete this update" } &nbsp;&nbsp;
+      %a.reply{ :href => "/home?status=@USERNAME%20&in_reply_to_status_id=ID&in_reply_to=USERNAME", :title => "reply to USERNAME" } &nbsp;&nbsp;
