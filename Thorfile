@@ -24,7 +24,7 @@ class Gm < Thor
     end
   end
   
-  desc 'check', %(Checks scriptLength property on both local and remote file)
+  desc 'check', %(Checks scriptSize property on both local and remote file)
   def check
     Net::HTTP.start('userscripts.org') do |http|
       for name, id in self.class.scripts
@@ -39,7 +39,7 @@ class Gm < Thor
         
         File.open(file) do |script|
           script.each do |line|
-            if line =~ /\bscriptLength = (\d+)\b/
+            if line =~ /\bscriptSize: (\d+)\b/
               hardcoded_size = $1.to_i
             end
           end

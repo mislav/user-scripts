@@ -9,61 +9,79 @@
 (function(realWindow){
 
 //= toolkit/gm_functions.js
+//= toolkit/time.js
 
-var timeline = $('timeline'),
-    sidebar = $('side'),
-    jQuery = realWindow.jQuery,
-    twttr = realWindow.twttr,
-    pageTracker = realWindow._gat && realWindow._gat._getTracker("UA-87067-6"),
-    currentUser = selectString('meta[@name="session-user-screen_name"]/@content'),
-    currentPage = document.body.id,
-    debugMode = getValue('debugMode', false),
-    home = 'home' == currentPage,
-    singleTweetPage = 'show' == currentPage,
-    sourceString = 'endlesstweets',
-    scriptVersion = '0.9.6',
-    scriptLength = 37585
-
-function trackSegment(seg) {
-  if (pageTracker) {
-    try {
-      pageTracker._setVar(seg)
-    } catch(err) {}
-  }
-}
-function trackPageview(url) {
-  if (pageTracker) {
-    if (url) url = url.replace(/^https?:\/\/[^\/]+/, '')
-    try {
-      pageTracker._trackPageview(url)
-    } catch(err) {}
-  }
-}
-trackPageview()
-
-function trackClicks(element, fn) {
-  element.addEventListener('mousedown', function(e) {
-    if (e.button == 0) {
-      if (typeof fn == "function") fn.call(this, e)
-      else if (fn) trackPageview(fn)
-      else if (element.href) trackPageview(element.href)
-    }
-  }, false)
-}
-
-if (home) {
-  var lastReadTweet = getValue('lastReadTweet', 0),
-      oldLastRead = lastReadTweet
-  
-  $('source').value = sourceString
-}
+var jQuery = realWindow.jQuery,
+    twttr = realWindow.twttr
 
 function livequeryRun() {
   jQuery.livequery && jQuery.livequery.run()
 }
 
-function getTwitterSession() {
-  return (document.cookie.toString().match(/_twitter_sess=[^\s;]+/) || [])[0]
+var $et = {
+  getTimeline: function() { return(this.timeline = $('timeline')) },
+  getPage: function() { return(this.page = document.body.id) },
+  getUpdateForm: function() { return(this.updateForm = find(null, 'form.status-update-form')) },
+  inspectPage: function() { this.getTimeline(); this.getPage(); this.getUpdateForm() },
+  sidebar: $('side'),
+  
+  currentUser: selectString('meta[@name="session-user-screen_name"]/@content'),
+  lastRead: getValue('lastReadTweet', 0),
+  setLastRead: function(id) { setValue('lastReadTweet', (this.lastRead = id)) },
+  debug: getValue('debugMode', false),
+  sourceString: 'endlesstweets',
+  version: '0.9.9',
+  scriptSize: 0,
+  
+  pageTracker: realWindow._gat && realWindow._gat._getTracker("UA-87067-6"),
+  segmentUser: function(seg) {
+    if (this.pageTracker) {
+      try { this.pageTracker._setVar(seg) } catch(err) {}
+    }
+  },
+  trackPageview: function(path) {
+    if (this.pageTracker) {
+      if (path) {
+        var url = (path instanceof URL) ? path : new URL(path)
+        path = url.pathWithQuery()
+        if (url.domain && url.domain != 'twitter.com') path = '/' + url.domain + '/' + path
+      }
+      try { this.pageTracker._trackPageview(path) } catch(err) {}
+    }
+  },
+  trackClicks: function(element, fn) {
+    element.addEventListener('mousedown', function(e) {
+      if (e.button == 0) {
+        var url = null
+        if (typeof fn == "function") url = fn.call(this, e)
+        else if (fn) url = fn
+        else if (element.href) url = element.href
+
+        if (url) this.trackPageview(url)
+      }
+    }, false)
+  },
+  
+  getSessionCookie: function() {
+    return (document.cookie.toString().match(/_twitter_sess=[^\s;]+/) || [])[0]
+  }
+}
+
+$et.inspectPage()
+$et.trackPageview()
+
+// have "from Endless Tweets" appear when users post updates
+var statusUpdateSource = find($et.updateForm, '#source')
+if (statusUpdateSource) statusUpdateSource.value = $et.sourceString
+
+function log(message) {
+  if ($et.debug) {
+    for (var i = 1; i < arguments.length; i++)
+      message = message.replace('%s', arguments[i])
+      
+    if (typeof GM_log == "function") GM_log(message)
+    else if (window.console) console.log(message)
+  }
 }
 
 if (typeof GM_registerMenuCommand == "function") {
@@ -73,39 +91,30 @@ if (typeof GM_registerMenuCommand == "function") {
   })
 }
 
-if (timeline) {
-  var nextPageLink = find('content', "#pagination a[@rel='next']"),
-      enablePreloading = true,
-      loading = false,
-      preloadingHandler = null
-  
-  if (home) {
-    //= polling.js
-  }
+if ($et.timeline) {
+  var enablePreloading = true,
+      loading = false
       
-  var someTweetLink = find(timeline, '> li[1] .status-body a')
-  if (someTweetLink) {
-    var pageDelimiterColor = getStyle(someTweetLink, 'color')
-    var pageDelimiterStyle = '1px dotted ' + pageDelimiterColor
-  } else {
-    var pageDelimiterColor = '#aaa'
-    var pageDelimiterStyle = '1px solid ' + pageDelimiterColor
-  }
-  
   function stopPreloading(text) {
     enablePreloading = false
-    window.removeEventListener('scroll', preloadingHandler, false)
     var message = $E('p', { id: 'pagination-message' }, text)
-    insertAfter(message, timeline)
+    insertAfter(message, $et.timeline)
   }
-
+  
+  function clearPaginationMessage() {
+    var message = $('pagination-message')
+    if (message) removeChild(message)
+  }
+  
+  var oldLastRead = $et.lastRead
+  
   function processTweet(item) {
     var id = Number(item.id.split('_')[1])
     
-    if (home) {
-      if (id > lastReadTweet) {
+    if ('home' == $et.page) {
+      if (id > $et.lastRead) {
         // a tweet newer than the last read? mark it as new last read
-        setValue('lastReadTweet', (lastReadTweet = id))
+        $et.setLastRead(id)
       } else if (id == oldLastRead) {
         stopPreloading("You have reached the last read tweet.")
         addClassName(item, 'last-read')
@@ -114,63 +123,75 @@ if (timeline) {
       }
     }
   }
-  
-  forEach(select('> li', timeline), processTweet)
+  function processTimeline() {
+    forEach(select('> li', $et.timeline), processTweet)
+  }
+  processTimeline()
 
-  if (enablePreloading && nextPageLink) {
-    log('attaching scroll handler')
-    var nextURL = nextPageLink.href.replace(/\bpage=(\d+)/, 'page=@')
-    var pageNumber = Number(RegExp.$1)
-    
-    function nearingBottom() {
-      var viewportBottom = window.scrollY + window.innerHeight,
-          nearNextPageLink = document.body.clientHeight - window.innerHeight/3
-      return viewportBottom >= nearNextPageLink
-    }
-    
-    window.addEventListener('scroll', preloadingHandler = function(e) {
-      if (!loading && nearingBottom()) {
-        loading = true
+  function nearingBottom() {
+    var viewportBottom = window.scrollY + window.innerHeight,
+        nearNextPageLink = document.body.clientHeight - window.innerHeight/3
+    return viewportBottom >= nearNextPageLink
+  }
+  
+  // core functionality of Endless Tweets: global handler that will
+  // simulate a click to the "more" link when approaching bottom
+  window.addEventListener('scroll', function(e) {
+    if (enablePreloading && !loading && nearingBottom()) {
+      var moreButton = jQuery('#pagination a[rel=next]')
+      if (moreButton.length) {
+        var matches = moreButton.attr('href').match(/\bpage=(\d+)/)
+        loading = matches[0]
+        var pageNumber = Number(matches[1])
         log('nearing the end of page; loading page %s', pageNumber)
         
-        // get the next page!
-        loadJSON(nextPageLink.href, function(response) {
-          var updates, list = $E('div'),
-              hasNextPage = /<a [^>]*rel="next"/.test(response['#pagination'])
-          
-          list.innerHTML = response['#timeline']
-          updates = xpath2array(select('.hentry', list))
-          log("found %s updates", updates.length)
-          match = null
-          
-          updates.forEach(function(update) {
-            // don't insert tweets already present in the document
-            if (!$(update.id)) {
-              timeline.appendChild(update)
-              processTweet(update)
-            }
-          })
-          
-          livequeryRun()
-          updates, list = null
-          
-          trackPageview(nextPageLink.href)
-
-          if (hasNextPage) {
-            // bump the page number on next page link
-            nextPageLink.href = nextURL.replace('@', ++pageNumber)
-            log("next page is now at %s", nextPageLink.href)
-          } else {
-            stopPreloading("This person has no more updates.")
-            removeChild(nextPageLink)
-          }
-
-          loading = false
-        }, { headers: { 'Cookie': getTwitterSession() } })
+        // simulate click by manually invoking cached event handlers
+        // (jQuery's trigger functionality doesn't work in Greasemonkey sandbox)
+        var handlers = moreButton.data('events')['click']
+        for (guid in handlers) handlers[guid].call(moreButton.get(0))
       }
-    }, false)
-  }
-} else if (singleTweetPage) {
+    }
+  }, false)
+  
+  //= polling.js
+  
+  var dynamicPages = ['/home', '/replies', '/inbox', '/favorites', '/search.html'],
+      pageSwitched = function() {
+        enablePreloading = true
+        clearPaginationMessage()
+        $et.inspectPage()
+      }
+  
+  // listen to jQuery ajax request to do extra processing after they are done
+  jQuery($et.sidebar).bind('ajaxSuccess', function(e, xhr, ajax){
+    var url = new URL(ajax.url)
+  
+    if (ajax.url.indexOf(loading) > -1) {
+      loading = false
+    } else if (dynamicPages.indexOf(url.path) != -1) {
+      $et.trackPageview(url)
+      // it's hard to detect searches with DOMNodeInserted below, so do it here
+      if (url.path == '/search.html') pageSwitched()
+    }
+  })
+  
+  find('container', '.columns').addEventListener('DOMNodeInserted', function(event) {
+    var element = event.target
+    if (element.nodeType != 1) return
+    
+    if ('timeline' == element.id) {
+      // defer the next step to allow for window.location and body.id to update
+      setTimeout(function(){
+        pageSwitched()
+        if ('home' == $et.page) processTimeline()
+      }, 10)
+    } else if ('home' == $et.page && $et.timeline == element.parentNode) {
+      processTweet(element)
+    } else if ('following' == element.parentNode.id) {
+      sortFriends()
+    }
+  }, false)
+} else if ('show' == $et.page) {
   //= inline_reply.js
 }
 
@@ -198,7 +219,7 @@ if (content) {
           reveal(update)
           twttr.loaded()
           livequeryRun()
-          trackPageview(statusUrl)
+          $et.trackPageview(statusUrl)
         })
       })
       e.preventDefault()
@@ -221,13 +242,13 @@ function checkViewportWidth() {
     if (!miniMode) {
       addClassName(document.body, 'mini')
       miniMode = true
-      trackSegment('mini layout')
+      $et.segmentUser('mini layout')
     }
   }
   else if (miniMode) {
     removeClassName(document.body, 'mini')
     miniMode = false
-    trackSegment('')
+    $et.segmentUser('')
   }
 }
 window.addEventListener('resize', checkViewportWidth, false)
@@ -256,7 +277,8 @@ var buildUpdateFromJSON = (function() {
         in_reply_to: data.in_reply_to_screen_name, in_reply_to_status: data.in_reply_to_status_id,
         fav_action: data.favorited ? 'un-favorite' : 'favorite',
         fav_class: data.favorited ? 'fav' : 'non-fav',
-      }
+      },
+      own = preparedData.username == $et.currentUser
 
     prepareContainer()
     updateContainer.innerHTML = updateHTML.replace(/[A-Z][A-Z0-9_]+/g, function(key) {
@@ -264,9 +286,10 @@ var buildUpdateFromJSON = (function() {
     })
     var update = updateContainer.firstChild
     
+    // remove excess elements
     if (!data.user.protected) removeChild(find(update, '.status-body > img'))
     if (!data.in_reply_to_status_id) removeChild(find(update, '.meta > a[last()]'))
-    removeChild(find(update, '.actions a.' + (preparedData.username == currentUser ? 'reply' : 'del')))
+    removeChild(find(update, '.actions a.' + (own ? 'reply' : 'del')))
     
     return update
   }
@@ -289,13 +312,9 @@ jQuery.cookie = function(name, value, options) {
   jQueryOldCookie(name, value, options)
 }
 
-jQuery(sidebar).bind("ajaxSuccess", function(e, xhr, ajax){
-  if (ajax.url == "/timeline/render_following_avatars") sortFriends()
-})
-
 // *** iPhone location map *** //
 
-var address = find(sidebar, '.vcard .adr')
+var address = find($et.sidebar, '.vcard .adr')
 
 if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   var API_KEY = 'ABQIAAAAfOaovFhDnVE3QsBZj_YthxSnhvsz13Tv4UkZBHR3eJwOymtuUxT045UEYNAo1HL_pePrMexH4SYngg',
@@ -303,7 +322,7 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   // create static map that links to Google Maps
   address.innerHTML = '<a class="googlemap" target="_blank" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
   
-  trackClicks(down(address), window.location + '/map')
+  $et.trackClicks(down(address), window.location + '/map')
 }
 
 //= toolkit/update_notifier.js
@@ -311,33 +330,35 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 var scriptURL = 'http://userscripts.org/scripts/show/24398',
     wrapper = find(null, '#content > .wrapper')
     
-if (sidebar) {
-  var scriptInfo = $E('div', { id: 'endless_tweets' }, 'with '),
+if ($et.sidebar) {
+  var scriptInfo = $E('div', { id: 'endless_tweets', 'class': 'section' }, 'with '),
       scriptLink = $E('a', { href: scriptURL, target: '_blank' }, 'Endless Tweets')
   scriptInfo.appendChild(scriptLink)
-  scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
-  var section = $('rssfeed') || find(sidebar, '.section')
-  section.appendChild(scriptInfo)
-  trackClicks(scriptLink, '/endless-tweets/sidebar-link')
+  scriptInfo.appendChild(document.createTextNode(' v' + $et.version))
+  $et.sidebar.appendChild(scriptInfo)
+  $et.trackClicks(scriptLink, '/endless-tweets/sidebar-link')
 }
 
-if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
+if (wrapper) checkUserscriptUpdate(scriptURL, $et.scriptSize, function() {
   var notice = $E('span', { id: 'userscript_update' },
     '“Endless Tweets” user script has updates (you have v' + scriptVersion + '). ')
   var install = $E('a', { 'href': scriptURL }, 'Get the upgrade')
   notice.appendChild(install)
   
   var topAlert = find('content', '.bulletin.info')
-  if (!topAlert && home) topAlert = insertTop($E('div', { 'class': 'bulletin info' }), find(wrapper, '.section'))
+  if (!topAlert && 'home' == $et.page) topAlert = insertTop($E('div', { 'class': 'bulletin info' }), find(wrapper, '.section'))
   if (topAlert) topAlert.appendChild(notice)
   else insertTop(notice, wrapper)
-  trackClicks(install, '/endless-tweets/update-link')
+  $et.trackClicks(install, '/endless-tweets/update-link')
 })
 
 //= toolkit/toolkit.js
 
 function twitterLinkify(text) {
-  return linkify(text, true).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+  return linkify(text, true).
+    replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+    // TODO: active hashtags `isSearchLink("processHashtagLink")`
+    // replace(/(^|\W)#(\w+)/g, '$1<a href="/search?q=%23$2" title="#$2" class="hashtag">#$2</a>')
 }
 
 function reveal(element) {

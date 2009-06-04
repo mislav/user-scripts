@@ -4,30 +4,29 @@ var polling = getValue('polling', false),
 function updateTimestamps() {
   var now = new Date()
   
-  forEach(select('.meta .published'), function(span) {
+  forEach(select('.meta .published', $et.timeline), function(span) {
     var time, title = span.getAttribute('title')
     if (title) {
       time = new Date(title)
       span.innerHTML = Time.agoInWords(time, now) + ' ago'
-    } else {
-      time = Time.agoToDate(strip(span.textContent), now)
+    } else if (time = Time.agoToDate(span.textContent, now)) {
       span.setAttribute('title', time.toString())
     }
   })
 }
+updateTimestamps()
 
 function deliverUpdate(data) {
   var update = buildUpdateFromJSON(data)
   
 	// finally, insert the new tweet in the timeline ...
-  insertTop(update, timeline)
+  insertTop(update, $et.timeline)
   // ... and remove the oldest tweet from the timeline
-  var oldestTweet = find(timeline, '> li[last()]')
-  removeChild(oldestTweet)
+  removeChild(find($et.timeline, '> li[last()]'))
   
   // never send Growl notifications for own tweets
-  if (growls && data.user.screen_name != currentUser) {
-    var title = data.user.screen_name + ' updated ' + strip(find(update, '.entry-date').textContent),
+  if (growls && data.user.screen_name != $et.currentUser) {
+    var title = data.user.screen_name + ' updated ' + strip(find(update, '.published').textContent),
         description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     growls.push({
       title: title, description: description, icon: find(update, '.author img'),
@@ -38,9 +37,9 @@ function deliverUpdate(data) {
 
 var debug = false // temp set to true for testing purposes
 
-var checkUpdates = function() {
+function checkUpdates() {
   var url = '/statuses/friends_timeline.json'
-  url += debug ? '?count=2' : '?since_id=' + lastReadTweet
+  url += debug ? '?count=2' : '?since_id=' + $et.lastRead
   
   log('checking for new tweets (%s)', url)
   loadJSON(url, function(updates) {
@@ -70,21 +69,20 @@ var checkUpdates = function() {
       growls = []
     }
     if (count) {
-      setValue('lastReadTweet', (lastReadTweet = data.id))
+      $et.setLastRead(data.id)
       livequeryRun()
     }
-  }, { onerror: function(xhr){ log('error while updating timeline') } })
-  
+  })
+}
+
+function checkUpdatesConditionally() {
+  if (polling && 'home' == $et.page) checkUpdates()
+}
+
+var updateInterval = setInterval(function() {
   updateTimestamps()
-}
-
-var pollInterval = null
-
-var startPolling = function() {
-  pollInterval = setInterval(checkUpdates, (debug ? 12 : 120) * 1000)
-}
-
-if (polling) startPolling()
+  checkUpdatesConditionally()
+}, (debug ? 12 : 120) * 1000)
 
 var target = $('rssfeed')
 if (target) {
@@ -96,18 +94,8 @@ if (target) {
   target.appendChild(label)
 
   pollToggle.addEventListener('change', function(e) {
-    log('polling: %s', pollToggle.checked)
-    if (pollToggle.checked) {
-      if (!pollInterval) {
-        checkUpdates()
-        startPolling()
-      }
-    } else {
-      if (pollInterval) {
-        clearInterval(pollInterval)
-        pollInterval = null
-      }
-    }
     setValue('polling', (polling = pollToggle.checked))
+    checkUpdatesConditionally()
+    log('polling: %s', polling)
   }, false)
 }

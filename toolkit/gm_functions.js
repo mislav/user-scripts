@@ -84,13 +84,3 @@ function addCSS(css) {
     styleElement.appendChild(document.createTextNode(css))
   }
 }
-
-function log(message) {
-  if (debugMode) {
-    for (var i = 1; i < arguments.length; i++)
-      message = message.replace('%s', arguments[i])
-      
-    if (typeof GM_log == "function") GM_log(message)
-    else if (window.console) console.log(message)
-  }
-}

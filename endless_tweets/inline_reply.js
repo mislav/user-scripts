@@ -1,16 +1,8 @@
-var actions = find('permalink', '.actions')
-if (actions) {
-  actions.style.top = document.defaultView.getComputedStyle(actions, null).top
-}
-
-var replyLink = find('content', '.actions .repl')
+var replyLink = find('content', '.actions .reply')
 if (replyLink) {
-  removeClassName(replyLink, 'repl')
-  addClassName(replyLink, 'reply')
-} else {
-  replyLink = find('content', '.actions .reply')
-}
-if (replyLink) {
+  var actions = replyLink.parentNode
+  actions.style.top = actions.offsetTop + 'px'
+  
   var replyHandler = function(e) {
     var container = $E('div')
     container.innerHTML = //= update_form.haml
@@ -62,9 +54,9 @@ if (replyLink) {
             in_reply_to_status_id: window.location.toString().match(/\d+/)[0],
             return_rendered_status: true, twttr: true,
             authenticity_token: twttr.form_authenticity_token,
-            source: sourceString
+            source: $et.sourceString
           },
-          headers: { 'Cookie': getTwitterSession() }
+          headers: { 'Cookie': $et.getSessionCookie() }
         })
       }
     }, false)

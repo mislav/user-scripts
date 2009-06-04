@@ -6,13 +6,13 @@ function memoizeFriendName(name) {
 }
 
 function detectTimelineMentions() {
-  if (timeline) {
+  if ($et.timeline) {
     // pick up any author names on the current timeline
-    forEach(select('.status-body > strong a/text()', timeline), function(name) {
+    forEach(select('.status-body > strong a/text()', $et.timeline), function(name) {
       memoizeFriendName(name.nodeValue)
     })
     // detect any mentioned names
-    forEach(select('.entry-content', timeline), function(body) {
+    forEach(select('.entry-content', $et.timeline), function(body) {
       var matches = body.textContent.match(/@(\w+)/g)
       if (matches) matches.forEach(function(name) {
         memoizeFriendName(name.slice(1, name.length))
@@ -72,7 +72,7 @@ function compare(a, b, filter) {
 }
 
 function sortFriends() {
-  var friends = xpath2array(select('#following_list .vcard', sidebar, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
+  var friends = xpath2array(select('#following_list .vcard', $et.sidebar, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
 
   if (friends.length) {
     friends.sort(function(a, b) {

@@ -1,5 +1,7 @@
 var checkUserscriptUpdate = (function(){
-  if (typeof GM_xmlhttpRequest != "function") return (function() {}) // no-op
+  // return a no-op function if this is not Greasemonkey
+  // (in other browsers we don't have cross-domain permissions)
+  if (typeof GM_xmlhttpRequest != "function") return (function() {})
   
   var update = {
     get available() { return getValue('updateAvailable', false) },
@@ -11,17 +13,18 @@ var checkUserscriptUpdate = (function(){
     interval: 172800 // 2 days
   }
   
-  // detect user has updated script
-  if (update.scriptLength != scriptLength) {
-    update.available = false
-    update.scriptLength = scriptLength
-  }
-  
   function validateScriptLength(length, scriptLength) {
     update.available = scriptLength != length
   }
   
   return function(scriptURL, scriptLength, callback) {
+    if (!scriptLength) return // we're probably in development mode
+  
+    // detect user has updated script
+    if (update.scriptLength != scriptLength) {
+      update.available = false
+      update.scriptLength = scriptLength
+    }
     var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js')
 
     if (!update.available) {
