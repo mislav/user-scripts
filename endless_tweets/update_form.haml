@@ -1,0 +1,12 @@
+%form#status_update_form.status-update-form{ :action => "http://twitter.com/status/update", :method => "post" }
+  %fieldset.common-form.standard-form
+    .bar
+      %h3
+        %label.doing{ :for => "status" } What are you doing?
+      %span#chars_left_notice.numeric
+        %strong#status-field-char-counter.char-counter
+          140
+    .info
+      %textarea#status{ :name => "status", :rows => "2", :cols => "40" }
+      .status-btn
+        %input#update-submit.status-btn.round-btn.disabled{ :name => "update", :type => "submit", :value => "reply" }

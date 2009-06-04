@@ -2,6 +2,7 @@
 require 'net/http'
 require 'curl'
 require 'cgi'
+require 'haml'
 require 'sass'
 require 'stringio'
 
@@ -95,7 +96,10 @@ class Gm < Thor
     partial = case file.extension
     when 'sass'
       css = Sass::Engine.new(file.read, :style => :compact).to_css
-      %[addCSS(#{javascript_string css})\n]
+      %[addCSS(#{javascript_string(css)})\n]
+    when 'haml'
+      html = Haml::Engine.new(file.read).to_html
+      javascript_string(html.rstrip)
     when 'js'
       target ||= StringIO.new
       render_js_with_partials(file, target)
@@ -133,7 +137,7 @@ class Gm < Thor
             rendered_partial.gsub!(/\n([^\n])/, "\n#{indentation}\\1")
           end
           
-          target << rendered_partial
+          target.puts rendered_partial
         else
           if code.empty?
             target.puts "/*** NOT FOUND: #{partial} ***/"

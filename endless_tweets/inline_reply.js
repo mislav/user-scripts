@@ -13,22 +13,7 @@ if (replyLink) {
 if (replyLink) {
   var replyHandler = function(e) {
     var container = $E('div')
-    container.innerHTML = "<form method='post' id='status_update_form' class='status-update-form' action='http://twitter.com/status/update'>\
-      <fieldset class='common-form standard-form'>\
-        <div class='bar'>\
-          <h3><label class='doing' for='status'>What are you doing?</label></h3>\
-          <span class='numeric' id='chars_left_notice'>\
-            <strong class='char-counter' id='status-field-char-counter'>140</strong>\
-          </span>\
-        </div>\
-        <div class='info'>\
-          <textarea name='status' id='status' rows='2' cols='40'></textarea>\
-          <div class='status-btn'>\
-            <input type='submit' class='status-btn round-btn disabled' id='update-submit' value='reply' name='update'/>\
-          </div>\
-        </div>\
-      </fieldset>\
-    </form>"
+    container.innerHTML = //= update_form.haml
     
     var username = selectString('meta[@name="page-user-screen_name"]/@content'),
         replyForm = $('permalink').parentNode.appendChild(container.firstChild),
