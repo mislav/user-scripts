@@ -11,6 +11,7 @@
 //= toolkit/gm_functions.js
 
 var timeline = $('timeline'),
+    sidebar = $('side'),
     jQuery = realWindow.jQuery,
     twttr = realWindow.twttr,
     pageTracker = realWindow._gat && realWindow._gat._getTracker("UA-87067-6"),
@@ -279,9 +280,22 @@ function onAvatarLoad(data, callback) {
 
 //= friends.js
 
+var jQueryOldCookie = jQuery.cookie
+jQuery.cookie = function(name, value, options) {
+  if (value && name == "menus" && !(options && options.expires)) {
+    if (!options) options = {}
+    options.expires = 365
+  }
+  jQueryOldCookie(name, value, options)
+}
+
+jQuery(sidebar).bind("ajaxSuccess", function(e, xhr, ajax){
+  if (ajax.url == "/timeline/render_following_avatars") sortFriends()
+})
+
 // *** iPhone location map *** //
 
-var address = find(null, '#side .vcard .adr')
+var address = find(sidebar, '.vcard .adr')
 
 if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   var API_KEY = 'ABQIAAAAfOaovFhDnVE3QsBZj_YthxSnhvsz13Tv4UkZBHR3eJwOymtuUxT045UEYNAo1HL_pePrMexH4SYngg',
@@ -295,7 +309,6 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
 //= toolkit/update_notifier.js
 
 var scriptURL = 'http://userscripts.org/scripts/show/24398',
-    sidebar = $('side'),
     wrapper = find(null, '#content > .wrapper')
     
 if (sidebar) {

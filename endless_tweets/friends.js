@@ -1,5 +1,4 @@
-var friends = xpath2array(select('#side #following_list .vcard', null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)),
-    friendNames = []
+var friendNames = []
 
 function memoizeFriendName(name) {
   name = name.toLowerCase()
@@ -72,19 +71,24 @@ function compare(a, b, filter) {
   return a < b ? -1 : 1;
 }
 
-if (friends.length) {
-  friends.sort(function(a, b) {
-    return compare(a, b, function(vcard) {
-      if (!vcard._name) {
-        vcard._name = selectString('./a/@href', vcard).match(/(\w+)\s*$/)[1]
-        vcard._nameDowncase = vcard._name.toLowerCase()
-      }
-      return vcard._nameDowncase
-    })
-  })
+function sortFriends() {
+  var friends = xpath2array(select('#following_list .vcard', sidebar, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE))
 
-  friends.forEach(function(vcard) {
-    vcard.parentNode.appendChild(vcard)
-    friendNames.push(vcard._nameDowncase)
-  })
+  if (friends.length) {
+    friends.sort(function(a, b) {
+      return compare(a, b, function(vcard) {
+        if (!vcard._name) {
+          vcard._name = selectString('./a/@href', vcard).match(/(\w+)\s*$/)[1]
+          vcard._nameDowncase = vcard._name.toLowerCase()
+        }
+        return vcard._nameDowncase
+      })
+    })
+
+    friends.forEach(function(vcard) {
+      vcard.parentNode.appendChild(vcard)
+      friendNames.push(vcard._nameDowncase)
+    })
+  }
 }
+sortFriends()
