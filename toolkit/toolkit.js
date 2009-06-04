@@ -236,7 +236,7 @@ function countOccurences(string, pattern) {
 
 var bracketMap = { ']': '[', ')': '(', '}': '{' }
 
-function linkify(text) {
+function linkify(text, external) {
   return text.replace(/\b(https?:\/\/|www\.)[^\s]+/g, function(href) {
     // check for punctuation character at the end
     var punct = '', match = href.match(/[.,;:!?\[\](){}"']$/)
@@ -249,7 +249,7 @@ function linkify(text) {
     }
     
     var fullHref = (href.indexOf('http') == 0) ? href : 'http://' + href
-    return '<a href="' + fullHref + '">' + href + '</a>' + punct
+    return '<a href="' + fullHref + '"' + (external ? ' target="_blank"' : '') + '>' + href + '</a>' + punct
   })
 }
 

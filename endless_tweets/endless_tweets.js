@@ -287,7 +287,7 @@ if (address && /[+-]?\d+\.\d+,[+-]?\d+\.\d+/.test(address.textContent)) {
   var API_KEY = 'ABQIAAAAfOaovFhDnVE3QsBZj_YthxSnhvsz13Tv4UkZBHR3eJwOymtuUxT045UEYNAo1HL_pePrMexH4SYngg',
       coordinates = RegExp['$&']
   // create static map that links to Google Maps
-  address.innerHTML = '<a class="googlemap" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
+  address.innerHTML = '<a class="googlemap" target="_blank" href="http://maps.google.com/maps?q=' + coordinates + '"><img src="http://maps.google.com/staticmap?center=' + coordinates + '&markers=' + coordinates + ',red&zoom=13&size=165x165&key=' + API_KEY + '" alt=""></a>'
   
   trackClicks(down(address), window.location + '/map')
 }
@@ -300,7 +300,7 @@ var scriptURL = 'http://userscripts.org/scripts/show/24398',
     
 if (sidebar) {
   var scriptInfo = $E('div', { id: 'endless_tweets' }, 'with '),
-      scriptLink = $E('a', { href: scriptURL }, 'Endless Tweets')
+      scriptLink = $E('a', { href: scriptURL, target: '_blank' }, 'Endless Tweets')
   scriptInfo.appendChild(scriptLink)
   scriptInfo.appendChild(document.createTextNode(' v' + scriptVersion))
   var section = $('rssfeed') || find(sidebar, '.section')
@@ -324,7 +324,7 @@ if (wrapper) checkUserscriptUpdate(scriptURL, scriptLength, function() {
 //= toolkit/toolkit.js
 
 function twitterLinkify(text) {
-  return linkify(text).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+  return linkify(text, true).replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
 }
 
 function reveal(element) {
