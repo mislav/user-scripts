@@ -183,9 +183,12 @@ if (content) {
     var link = up(e.target, 'a', this)
     if (link && /^\s*in reply to /.test(link.textContent)) {
       var statusID = link.href.match(/(\d+)$/)[1],
-          statusUrl = '/statuses/show/' + statusID + '.json'
+          statusUrl = '/statuses/show/' + statusID + '.json',
+          fallback = function(xhr) { window.location = link.href }
+          
       twttr.loading()
-      loadJSON(statusUrl, function(response) {
+      loadJSON(statusUrl, function(response, xhr) {
+        if (xhr.status >= 400) { fallback.call(xhr); return }
         onAvatarLoad(response, function() {
           var update = buildUpdateFromJSON(response),
               currentStatus = up(link, '.status', content)
@@ -202,7 +205,7 @@ if (content) {
           livequeryRun()
           $et.trackPageview(statusUrl)
         })
-      })
+      }, { onerror: fallback })
       e.preventDefault()
     }
   }, false)
