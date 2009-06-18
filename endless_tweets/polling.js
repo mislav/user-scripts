@@ -57,6 +57,7 @@ function checkUpdates() {
     if (count) {
       $et.setLastRead(data.id)
       livequeryRun()
+      $et.trackEvent('timeline', 'polling', 'found updates for ' + $et.currentUser, count)
     }
   })
 }

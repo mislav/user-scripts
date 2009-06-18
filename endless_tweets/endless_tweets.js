@@ -33,42 +33,15 @@ var $et = {
   version: '0.9.9',
   scriptSize: 0,
   
-  pageTracker: realWindow._gat && realWindow._gat._getTracker("UA-87067-6"),
-  segmentUser: function(seg) {
-    if (this.pageTracker) {
-      try { this.pageTracker._setVar(seg) } catch(err) {}
-    }
-  },
-  trackPageview: function(path) {
-    if (this.pageTracker) {
-      if (path) {
-        var url = (path instanceof URL) ? path : new URL(path)
-        path = url.pathWithQuery()
-        if (url.domain && url.domain != 'twitter.com') path = '/' + url.domain + '/' + path
-      }
-      try { this.pageTracker._trackPageview(path) } catch(err) {}
-    }
-  },
-  trackClicks: function(element, fn) {
-    element.addEventListener('mousedown', function(e) {
-      if (e.button == 0) {
-        var url = null
-        if (typeof fn == "function") url = fn.call(this, e)
-        else if (fn) url = fn
-        else if (element.href) url = element.href
-
-        if (url) this.trackPageview(url)
-      }
-    }, false)
-  },
-  
   getSessionCookie: function() {
     return (document.cookie.toString().match(/_twitter_sess=[^\s;]+/) || [])[0]
   }
 }
 
+//= toolkit/analytics.js
+applyAnalytics($et, realWindow._gat, "UA-87067-6")
+
 $et.inspectPage()
-$et.trackPageview()
 
 // have "from Endless Tweets" appear when users post updates
 var statusUpdateSource = find($et.updateForm, '#source')
@@ -222,7 +195,7 @@ if (content) {
           reveal(update)
           twttr.loaded()
           livequeryRun()
-          $et.trackPageview(statusUrl)
+          $et.trackEvent('timeline', 'in_reply_to', 'loaded status ' + statusID)
         })
       }, { onerror: fallback })
       e.preventDefault()
@@ -245,13 +218,13 @@ function checkViewportWidth() {
     if (!miniMode) {
       addClassName(document.body, 'mini')
       miniMode = true
-      $et.segmentUser('mini layout')
+      $et.trackEvent('layout', 'mini')
     }
   }
   else if (miniMode) {
     removeClassName(document.body, 'mini')
     miniMode = false
-    $et.segmentUser('')
+    $et.trackEvent('layout', 'restore')
   }
 }
 window.addEventListener('resize', checkViewportWidth, false)

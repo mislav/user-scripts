@@ -47,6 +47,7 @@ if (replyLink) {
           }
           insertAfter(miniTimeline, $('permalink'))
           reveal(miniTimeline.firstChild)
+          $et.trackEvent('timeline', 'inline_reply', 'replied to ' + username)
         }, {
           method: replyForm.getAttribute('method'),
           data: {
@@ -63,6 +64,7 @@ if (replyLink) {
     
     e.preventDefault()
     replyLink.removeEventListener('click', replyHandler, false)
+    $et.trackEvent('timeline', 'inline_reply_form', 'replying to ' + username)
   }
   replyLink.addEventListener('click', replyHandler, false)
 }
