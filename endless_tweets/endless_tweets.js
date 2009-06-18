@@ -356,6 +356,7 @@ if (wrapper) checkUserscriptUpdate(scriptURL, $et.scriptSize, function() {
 })
 
 //= toolkit/toolkit.js
+//= toolkit/notification.js
 
 function twitterLinkify(text) {
   return linkify(text, true).

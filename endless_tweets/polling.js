@@ -1,5 +1,4 @@
-var polling = getValue('polling', false),
-    growls = window.fluid ? [] : null
+var polling = getValue('polling', false)
 
 function updateTimestamps() {
   var now = new Date()
@@ -25,10 +24,10 @@ function deliverUpdate(data) {
   removeChild(find($et.timeline, '> li[last()]'))
   
   // never send Growl notifications for own tweets
-  if (growls && data.user.screen_name != $et.currentUser) {
+  if (Notification.supported && data.user.screen_name != $et.currentUser) {
     var title = data.user.screen_name + ' updated ' + strip(find(update, '.published').textContent),
         description = data.text.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    growls.push({
+    Notification.enqueue({
       title: title, description: description, icon: find(update, '.author img'),
       identifier: 'tw' + data.id, onclick: function() { window.fluid.activate() }
     })
@@ -53,21 +52,8 @@ function checkUpdates() {
         count++
       }
     }
-    if (growls) {
-      var limit = growls.length - 4
-      for (var i = growls.length - 1; i >= 0; i--) {
-        if (i < limit) {
-          window.fluid.showGrowlNotification({
-            title: '(' + limit + ' more update' + (limit > 1 ? 's' : '') + ')',
-            description: '',
-            onclick: function() { window.fluid.activate() }
-          })
-          break
-        }
-        window.fluid.showGrowlNotification(growls[i])
-      }
-      growls = []
-    }
+    Notification.release()
+    
     if (count) {
       $et.setLastRead(data.id)
       livequeryRun()
