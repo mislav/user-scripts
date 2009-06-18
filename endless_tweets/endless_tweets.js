@@ -26,8 +26,8 @@ var $et = {
   sidebar: $('side'),
   
   currentUser: selectString('meta[@name="session-user-screen_name"]/@content'),
-  lastRead: getValue('lastReadTweet', 0),
-  setLastRead: function(id) { setValue('lastReadTweet', (this.lastRead = id)) },
+  lastRead: Number(getValue('lastReadTweet', 0)),
+  setLastRead: function(id) { setValue('lastReadTweet', (this.lastRead = id).toString()) },
   debug: getValue('debugMode', false),
   sourceString: 'endlesstweets',
   version: '0.9.9',
