@@ -25,7 +25,7 @@ var checkUserscriptUpdate = (function(){
       update.available = false
       update.scriptLength = scriptLength
     }
-    var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js')
+    var sourceURL = scriptURL.replace(/show\/(\d+)$/, 'source/$1.user.js?update')
 
     if (!update.available) {
       var time = Math.floor(new Date().getTime() / 1000),
