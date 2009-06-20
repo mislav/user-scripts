@@ -14,15 +14,20 @@ function up(node, selector, stopNode) {
 }
 
 function matchesCss(node, selector) {
-  var firstChar = selector.charAt(0)
+  var tests = selector.match(/^(\w*)(#\w+)?((?:\.\w+)*)$/),
+      tag = tests[1],
+      id = tests[2],
+      classes = tests[3]
   
-  if (firstChar == '.') {
-    return hasClassName(node, selector.slice(1, selector.length))
-  } else if (firstChar == '#') {
-    return node.id == selector.slice(1, selector.length)
-  } else {
-    return node.nodeName.toLowerCase() == selector
+  if (classes) {
+    var classmatch = true
+    forEach(classes.split('.'), function(klass) {
+      if (klass && !hasClassName(node, klass)) classmatch = false
+    })
   }
+      
+  return (!tag || node.nodeName.toLowerCase() == tag.toLowerCase()) &&
+    (!id || node.id == id) && (!classes || classmatch)
 }
 
 function hasClassName(element, className) {
