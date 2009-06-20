@@ -77,7 +77,7 @@ class Gm < Thor
   private
   
   def script_path(id)
-    "/scripts/source/#{id}.user.js"
+    "/scripts/source/#{id}.user.js?update"
   end
   
   def script_file(name)
