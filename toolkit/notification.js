@@ -7,7 +7,9 @@ var Notification = (function() {
   if (!supported) {
     var show = function() {}
   } else if (fluid) {
-    var show = window.fluid.showGrowlNotification
+    var show = function(params) {
+      window.fluid.showGrowlNotification(params)
+    }
   } else {
     var show = function(params) {
       window.platform.showNotification(params.title, params.description, params.icon)
