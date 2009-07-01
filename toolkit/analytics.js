@@ -13,9 +13,9 @@ function applyAnalytics($, gat, account) {
   }
   $.trackPageview = function(path) {
     if (path) {
-      var url = (path instanceof URL) ? path : new URL(path)
+      var url = new URL(path)
       path = url.pathWithQuery()
-      if (url.domain && url.domain != 'twitter.com') path = '/' + url.domain + '/' + path
+      if (url.external()) path = '/' + url.host + path
     }
     try { pageTracker._trackPageview(path) } catch(err) {}
   }

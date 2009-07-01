@@ -159,10 +159,7 @@ function ajax(params) {
       
   params = extend(defaults, params)
   params.headers = extend(defaultHeaders, params.headers || {})
-  
-  if (!/^https?[:]/.test(params.url)) {
-    params.url = window.location.protocol + '//' + window.location.host + params.url
-  }
+  params.url = new URL(params.url).absolutize().toString()
   
   if (typeof params.data == 'object') {
     params.data = objectToQueryString(params.data)
@@ -173,24 +170,41 @@ function ajax(params) {
 }
 
 function loadJSON(url, onload, params) {
-  params = extend({ url: url, onload: onload }, params || {})
-  var handler = params.onload
+  url = new URL(url)
   
-  params.onload = function(response) {
-    if (typeof response.getResponseHeader == 'function') {
-      // native XMLHttpRequest interface
-      var responseType = (response.getResponseHeader('Content-type') || '').split(';')[0]
-    } else {
-      // GM_xmlhttpRequest interface
-      var responseType = (response.responseHeaders.match(/^Content-[Tt]ype:\s*([^\s;]+)/m) || [])[1]
+  if (params.jsonp) {
+    var head = document.getElementsByTagName('head')[0],
+		    script = document.createElement('script'),
+		    jsonp = ('string' == typeof params.jsonp) ? params.jsonp : '_callback',
+		    callback = 'loadJSON' + (++loadJSON.$uid)
+		
+		window[callback] = function(object) {
+		  onload(object)
+		  window[callback] = null
+		}
+		script.src = url.addQuery(jsonp + '=' + callback)
+		head.appendChild(script)
+  } else {
+    params = extend({ url: url, onload: onload }, params || {})
+    var handler = params.onload
+  
+    params.onload = function(response) {
+      if (typeof response.getResponseHeader == 'function') {
+        // native XMLHttpRequest interface
+        var responseType = (response.getResponseHeader('Content-type') || '').split(';')[0]
+      } else {
+        // GM_xmlhttpRequest interface
+        var responseType = (response.responseHeaders.match(/^Content-[Tt]ype:\s*([^\s;]+)/m) || [])[1]
+      }
+      if (responseType == 'application/json' || responseType == 'text/javascript') {
+        var object = eval("(" + response.responseText + ")")
+        if (object) handler(object, response)
+      }
     }
-    if (responseType == 'application/json' || responseType == 'text/javascript') {
-      var object = eval("(" + response.responseText + ")")
-      if (object) handler(object, response)
-    }
+    return ajax(params)
   }
-  return ajax(params)
 }
+loadJSON.$uid = 0
 
 function strip(string) {
   return string.replace(/^\s+/, '').replace(/\s+$/, '')
@@ -246,11 +260,15 @@ function positionCursor(field, start, end) {
 }
 
 function URL(string) {
-  var match = string.match(/(?:(https?):\/\/([^\/]+))?([^?]*)(?:\?(.*))?/)
+  if (string instanceof URL) return string
+  
+  var match = string.match(/(?:(https?:)\/\/([^\/]+))?([^?]*)(?:\?([^#]*))?(?:#(.*))?/)
   string = match[0]
-  this.domain = match[2]
+  this.protocol = match[1]
+  this.host = match[2]
   this.path = match[3]
   this.query = match[4]
+  this.hash = match[5]
   
   this.toString = function() {
     return string
@@ -259,4 +277,18 @@ function URL(string) {
 
 URL.prototype.pathWithQuery = function() {
   return this.path + (this.query ? '?' + this.query : '')
+}
+URL.prototype.external = function() {
+  return this.host && (this.host != window.location.host ||
+    this.protocol != window.location.protocol)
+}
+URL.prototype.absolutize = function() {
+  if (this.host) {
+    return this
+  } else {
+    return new URL(window.location.protocol + '//' + window.location.host + this)
+  }
+}
+URL.prototype.addQuery = function(string) {
+  return new URL(this.toString() + (this.query ? '&' : '?') + string)
 }
