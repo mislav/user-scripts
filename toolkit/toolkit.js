@@ -172,7 +172,7 @@ function ajax(params) {
 function loadJSON(url, onload, params) {
   url = new URL(url)
   
-  if (params.jsonp) {
+  if (params && params.jsonp) {
     var head = document.getElementsByTagName('head')[0],
 		    script = document.createElement('script'),
 		    jsonp = ('string' == typeof params.jsonp) ? params.jsonp : '_callback',
