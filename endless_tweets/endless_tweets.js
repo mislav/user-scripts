@@ -332,10 +332,10 @@ if (wrapper) checkUserscriptUpdate(scriptURL, $et.scriptSize, function() {
 //= toolkit/notification.js
 
 function twitterLinkify(text) {
-  return linkify(text, true).
-    replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
-    // TODO: active hashtags `isSearchLink("processHashtagLink")`
-    // replace(/(^|\W)#(\w+)/g, '$1<a href="/search?q=%23$2" title="#$2" class="hashtag">#$2</a>')
+  // TODO: add class "tweet-url web" to external links
+  return linkify(text, true)
+    .replace(/(^|\W)@(\w+)/g, '$1@<a href="/$2">$2</a>')
+    .replace(/(^|\W)#(\w+)/g, '$1<a href="/search?q=%23$2" title="#$2" class="tweet-url hashtag">#$2</a>')
 }
 
 function reveal(element) {
