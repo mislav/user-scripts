@@ -71,6 +71,24 @@ body#profile ol.statuses .thumb + span.status-body
   :min-height 50px
 
 body.mini
+  #container
+    :width 564px
+    :padding 0
+    :margin 0
+    >
+      .columns
+        :margin-bottom 0
+        :border-collapse collapse
+        :background white
+      .content-bubble-arrow
+        :display none
+
+  #content
+    +no_rounded_borders
+    :padding-top 40px
+    .wrapper
+      :padding 0
+
   #side_base
     +no_rounded_borders
     :border-left none !important
@@ -79,8 +97,9 @@ body.mini
     :left 0
     :top 0
     :height 40px
-    :width 423px
+    :width 424px
     :padding-left 140px
+    :margin 0
 
   &#show
     #container
@@ -156,16 +175,10 @@ body.mini
         :background none !important
       input[name=q]
         :margin 0
-        :width 60px !important
+        :width 55px !important
 
   #navigation, #footer
     :display none 
-
-  #content
-    +no_rounded_borders
-    :padding-top 40px
-    .wrapper
-      :padding 0
 
   #status_update_box
     :max-width 540px
@@ -193,16 +206,6 @@ body.mini
 
     ~ .section
       :padding 0 7px
-
-  #container
-    :width 564px
-    :padding 0
-    :margin 0
-    >
-      .columns
-        :margin-bottom 0
-      .content-bubble-arrow
-        :display none
 
   #header
     :margin 0 !important
