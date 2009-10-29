@@ -265,7 +265,7 @@ var buildUpdateFromJSON = (function() {
     // remove excess elements
     if (!data.user.protected) removeChild(find(update, '.status-body > img'))
     if (!data.in_reply_to_status_id) removeChild(find(update, '.meta > a[last()]'))
-    removeChild(find(update, '.actions a.' + (own ? 'reply' : 'del')))
+    removeChild(find(update, '.actions-hover' + (own ? ' .reply' : ' .del')))
     
     return update
   }
