@@ -30,7 +30,7 @@ var $et = {
   setLastRead: function(id) { setValue('lastReadTweet', (this.lastRead = id).toString()) },
   debug: getValue('debugMode', false),
   sourceString: 'endlesstweets',
-  version: '0.9.9',
+  version: '0.9.10',
   scriptSize: 0,
   
   getSessionCookie: function() {
