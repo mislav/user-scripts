@@ -135,11 +135,11 @@ body.mini
     div.section
       :padding 0
 
-    #primary_nav ~ *, #message_count, .about, .promotion
+    #primary_nav ~ *, #message_count, .about, .promotion, #profile_tab
       :display none 
 
     #profile
-      #me_name
+      #me_name, #me_tweets
         :display none
       .section-links
         :margin-right 4px
@@ -225,6 +225,22 @@ body.mini
   #loader
     :right 5px
     :top 5px
+
+body.mini.lists
+  #side_base
+    :display none
+  table.columns
+    :margin-top 0
+  #content
+    :padding-top 0
+    .list-header
+      :height 20px
+      :padding-left 150px
+      :margin-right -10px !important
+      h2
+        :height auto
+        :width auto
+        :font-size 20px
 
 body.timeline #content h1
   :font-size 1em
