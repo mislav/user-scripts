@@ -111,7 +111,7 @@ if ($et.timeline) {
   // simulate a click to the "more" link when approaching bottom
   window.addEventListener('scroll', function(e) {
     if (enablePreloading && !loading && nearingBottom()) {
-      var moreButton = jQuery('#pagination a[rel=next]')
+      var moreButton = jQuery('#pagination #more')
       if (moreButton.length) {
         var matches = moreButton.attr('href').match(/\bpage=(\d+)/)
         loading = matches[0]
@@ -120,8 +120,10 @@ if ($et.timeline) {
         
         // simulate click by manually invoking cached event handlers
         // (jQuery's trigger functionality doesn't work in Greasemonkey sandbox)
-        var handlers = moreButton.data('events')['click']
-        for (guid in handlers) handlers[guid].call(moreButton.get(0))
+        var handlers = jQuery(realWindow.document).data('events').live
+        for (var key in handlers)
+          if (key.indexOf(moreButton.selector + 'click') >= 0)
+            handlers[key].call(moreButton.get(0))
       }
     }
   }, false)
