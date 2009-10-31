@@ -1,4 +1,4 @@
-var replyLink = find('content', '.actions .reply')
+var replyLink = find('content', '.status .reply a')
 if (replyLink) {
   var actions = replyLink.parentNode
   actions.style.top = actions.offsetTop + 'px'
@@ -8,7 +8,7 @@ if (replyLink) {
     container.innerHTML = //= update_form.haml
     
     var username = selectString('meta[@name="page-user-screen_name"]/@content'),
-        replyForm = $('permalink').parentNode.appendChild(container.firstChild),
+        replyForm = insertAfter(container.firstChild, $('permalink')),
         label = find(replyForm, 'label.doing'),
         textInput = $('status'),
         counter = $('status-field-char-counter'),

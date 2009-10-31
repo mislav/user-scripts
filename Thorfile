@@ -104,6 +104,9 @@ class Gm < Thor
       target ||= StringIO.new
       render_js_with_partials(file, target)
       target.string if StringIO === target
+    when 'gif', 'png', 'jpg'
+      encoded = [file.read].pack('m').gsub(/\s+/, '')
+      javascript_string('data:image/%s;base64,%s' % [file.extension, encoded])
     else
       raise "don't know how to handle .#{file.extension}"
     end

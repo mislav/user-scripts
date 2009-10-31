@@ -18,6 +18,8 @@ function livequeryRun() {
   jQuery.livequery && jQuery.livequery.run()
 }
 
+var spinnerData = //= load_indicator.gif
+
 var $et = {
   getTimeline: function() { return(this.timeline = $('timeline')) },
   getPage: function() { return(this.page = document.body.id) },
@@ -35,6 +37,11 @@ var $et = {
   
   getSessionCookie: function() {
     return (document.cookie.toString().match(/_twitter_sess=[^\s;]+/) || [])[0]
+  },
+  createLoadIndicator: function(element) {
+    var img = $E('img', {src: spinnerData, 'class': 'load-indicator'})
+    if (element) insertAfter(img, $(element))
+    return img
   }
 }
 
@@ -175,34 +182,48 @@ if (content) {
   // catch click to "in reply to ..." links
   content.addEventListener('click', function(e) {
     var link = up(e.target, 'a', this)
-    if (link && /^\s*in reply to /.test(link.textContent)) {
-      var statusID = link.href.match(/(\d+)$/)[1],
-          statusUrl = '/statuses/show/' + statusID + '.json',
-          fallback = function(xhr) { window.location = link.href }
-          
-      twttr.loading()
-      loadJSON(statusUrl, function(response, xhr) {
-        if (xhr.status >= 400) { fallback(xhr); return }
-        onAvatarLoad(response, function() {
-          var update = buildUpdateFromJSON(response),
-              currentStatus = up(link, '.status', content)
-              
-          if (currentStatus) {
-            // we're in a list of statuses
-            insertAfter(update, currentStatus)
-          } else {
-            // we're on a fresh single tweet page
-            insertAfter(update.parentNode, $('permalink'))
-          }
-          reveal(update)
-          twttr.loaded()
-          livequeryRun()
-          $et.trackEvent('timeline', 'in_reply_to', 'loaded status ' + statusID)
-        })
-      }, { onerror: fallback })
+    if (link && /^\s*in reply to\b/.test(link.textContent)) {
+      loadInReplyTo(link, 'show' == $et.page)
       e.preventDefault()
     }
   }, false)
+  
+  function loadInReplyTo(link, recursive) {
+    var statusID = link.href.match(/(\d+)$/)[1],
+        statusUrl = '/statuses/show/' + statusID + '.json',
+        fallback = function(xhr) { window.location = link.href }
+    
+    if ($('status_' + statusID)) return false
+    
+    var indicator = $et.createLoadIndicator(link)
+    
+    loadJSON(statusUrl, function(response, xhr) {
+      if (xhr.status >= 400) { fallback(xhr); return }
+      onAvatarLoad(response, function() {
+        var update = buildUpdateFromJSON(response)
+        
+        if (up(link, '.statuses', content)) {
+          // we're in a list of statuses
+          insertAfter(update, up(link, '.status', content))
+        } else {
+          // we're on a single tweet page, so create a timeline list
+          insertAfter(update.parentNode, $('permalink'))
+        }
+        reveal(update)
+        $et.trackEvent('timeline', 'in_reply_to', 'loaded status ' + statusID)
+        
+        var nextInReplyLink = find(update, './/a[@href][starts-with(text(), "in reply to ")]')
+        if (recursive && nextInReplyLink) {
+          loadInReplyTo(nextInReplyLink, recursive)
+        } else {
+          livequeryRun()
+        }
+        removeChild(indicator)
+      })
+    }, { onerror: fallback })
+    
+    return true
+  }
   
   // catch TAB keypresses in the update form
   content.addEventListener('keydown', function(e) {
