@@ -4,7 +4,6 @@ Endless Tweets
 This script automatically loads the next page when you scroll down.
 It also does a lot more to improve your user experience of Twitter.com website.
 
- - [Endless Tweets screenshots & screencasts][2]
  - [Endless Tweets on userscripts.org][1]
 
 Feature list
@@ -22,4 +21,3 @@ Feature list
  - update notifier (checks every 48 hours)
 
 [1]: http://userscripts.org/scripts/show/24398
-[2]: http://mislav.uniqpath.com/user-scripts/endless-tweets/
